@@ -46,7 +46,7 @@
   "license": "MIT",
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
-    "dsh-better-sidebar": ">=0.19.1",
+    "dsh-better-sidebar": ">=0.18.1",
     "react": "^18.2.0"
   },
   "peerDependenciesMeta": {
