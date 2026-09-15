@@ -230,3 +230,68 @@ export default function Report() {
     expect(texts[1]?.children.some(c => c.kind === 'unsupported')).toBe(true)
   })
 })
+
+describe('statement scanning — files that omit semicolons (ASI)', () => {
+  // Real corpus files are written both ways. Without ASI handling the scanner
+  // folded every following `const` into the first initialiser, so
+  // `const home = canvasImage('./home.png')` became one giant string and every
+  // `<img src={home}>` silently dropped out of the IR.
+  const noSemicolons = `
+import { Stack, canvasImage } from 'qoder/canvas'
+
+const home = canvasImage('./home.png')
+const waiting = canvasImage('./waiting.png')
+
+export default function Report() {
+  return (
+    <Stack>
+      <img src={home} alt="home" />
+    </Stack>
+  )
+}
+`
+
+  it('keeps each module const on its own statement', () => {
+    const consts = collectModuleConsts(noSemicolons)
+    expect(consts.get('home')).toBe("canvasImage('./home.png')")
+    expect(consts.get('waiting')).toBe("canvasImage('./waiting.png')")
+  })
+
+  it('resolves an img src through its const binding', () => {
+    const result = extractCanvas(noSemicolons)
+    if (!result.ok) throw new Error(result.error.message)
+    let img: Extract<CanvasNode, { kind: 'element' }> | undefined
+    const visit = (n: CanvasNode): void => {
+      if (n.kind !== 'element') return
+      if (n.tag === 'img') img = n
+      n.children.forEach(visit)
+    }
+    visit(result.root)
+    expect(img?.props.src).toBe('./home.png')
+    expect(img?.unresolved).toBeUndefined()
+  })
+
+  it('does not cut a statement at a continuation line break', () => {
+    const consts = collectModuleConsts(`const joined = 'a' +\n  'b'\nconst n = 1\n`)
+    expect(consts.get('joined')).toBe("'a' +\n  'b'")
+    expect(consts.get('n')).toBe('1')
+  })
+
+  it('does not cut a statement at a continuation-leading line break', () => {
+    const consts = collectModuleConsts(`const chained = base\n  .map((v) => v.a)\nconst n = 1\n`)
+    expect(consts.get('chained')).toBe('base\n  .map((v) => v.a)')
+    expect(consts.get('n')).toBe('1')
+  })
+
+  it('handles a multi-line bracketed initialiser without a semicolon', () => {
+    const consts = collectModuleConsts(`const rows = [\n  ['a', 'b'],\n  ['c', 'd'],\n]\nconst n = 1\n`)
+    expect(consts.get('rows')).toBe("[\n  ['a', 'b'],\n  ['c', 'd'],\n]")
+    expect(consts.get('n')).toBe('1')
+  })
+
+  it('still stops at an explicit semicolon', () => {
+    const consts = collectModuleConsts(`const a = 1; const b = 2;\n`)
+    expect(consts.get('a')).toBe('1')
+    expect(consts.get('b')).toBe('2')
+  })
+})

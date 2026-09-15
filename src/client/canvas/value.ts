@@ -109,7 +109,45 @@ function findInitialiserEquals(src: string, from: number): number | null {
   return null
 }
 
-/** Index just past the `;` ending a module-level statement starting at `from`. */
+/**
+ * Skip whitespace and comments, including NEWLINES.
+ *
+ * `lex.ts`'s `skipTrivia` deliberately stops at a line break (JSX whitespace
+ * semantics depend on it), so statement scanning needs its own reader.
+ */
+function skipBlank(src: string, from: number): number {
+  let i = from
+  for (;;) {
+    const c = src[i] as string | undefined
+    if (c === undefined) return i
+    if (/\s/.test(c)) {
+      i++
+      continue
+    }
+    if (c === '/' && (src[i + 1] === '/' || src[i + 1] === '*')) {
+      const next = skipTrivia(src, i)
+      if (next > i) {
+        i = next
+        continue
+      }
+    }
+    return i
+  }
+}
+
+/** Characters that make the NEXT line a continuation of the current expression. */
+const CONTINUES_AFTER = new Set(['.', ',', ')', ']', '}', '+', '-', '*', '/', '%', '&', '|', '^', '?', '=', '<', '>', ':'])
+
+/** Characters that mean the expression is still open when they END a line. */
+const CONTINUES_BEFORE = new Set(['.', ',', '+', '-', '*', '/', '%', '&', '|', '^', '!', '?', '=', '<', '>', ':', '(', '[', '{'])
+
+/**
+ * Index just past the statement starting at `from`.
+ *
+ * Terminated by `;` OR by a line break that is not an expression continuation —
+ * real canvas files are written both ways, and a file that omits semicolons
+ * would otherwise fold every following `const` into the first initialiser.
+ */
 function findStatementEnd(src: string, from: number): number {
   let i = from
   let lastSignificant = from
@@ -138,6 +176,20 @@ function findStatementEnd(src: string, from: number): number {
       continue
     }
     if (c === ';') return i
+
+    // ASI boundary: a top-level line break ends the statement unless either
+    // side of the break says the expression is still open.
+    if (c === '\n' && lastSignificant > from) {
+      const before = src[lastSignificant - 1] as string | undefined
+      const after = src[skipBlank(src, i)] as string | undefined
+      const continues =
+        (before !== undefined && CONTINUES_BEFORE.has(before)) ||
+        (after !== undefined && CONTINUES_AFTER.has(after))
+      if (!continues) return lastSignificant
+      i++
+      continue
+    }
+
     if (!/\s/.test(c)) lastSignificant = i + 1
     i++
   }

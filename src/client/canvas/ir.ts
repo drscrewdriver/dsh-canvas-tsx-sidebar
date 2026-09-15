@@ -90,6 +90,29 @@ export function unsupported(reason: string, snippet?: string): CanvasNode {
   return snippet === undefined ? { kind: 'unsupported', reason } : { kind: 'unsupported', reason, snippet }
 }
 
+/** Census of a tree, for diagnostics and corpus reporting. */
+export interface NodeCounts {
+  /** `element` nodes, including fragments. */
+  readonly components: number
+  /** `text` nodes. */
+  readonly texts: number
+  /** `unsupported` nodes — the fidelity gap. */
+  readonly unsupported: number
+}
+
+/** Count the nodes in a tree. */
+export function countNodes(node: CanvasNode): NodeCounts {
+  let components = 0
+  let texts = 0
+  let unsupported = 0
+  walk(node, n => {
+    if (n.kind === 'element') components++
+    else if (n.kind === 'text') texts++
+    else unsupported++
+  })
+  return { components, texts, unsupported }
+}
+
 /** Depth-first walk in document order. */
 export function walk(node: CanvasNode, visit: (node: CanvasNode) => void): void {
   visit(node)
