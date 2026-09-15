@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>sample — dsh-canvas-tsx-sidebar 渲染测试</title>
+  <style>
+    /* ─── 基础 ─── */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f5f5f5; color: #111827; line-height: 1.6;
+    }
+
+    /* ─── 页面容器 ─── */
+    .report-shell {
+      max-width: 800px; margin: 0 auto;
+      padding: 24px 32px; background: #fff;
+      border-radius: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      margin-top: 24px; margin-bottom: 24px;
+    }
+
+    /* ─── 布局 ─── */
+    .stack { display: flex; flex-direction: column; }
+    .grid { display: grid; }
+    .row { display: flex; gap: 16px; }
+    .column { flex: 1; min-width: 0; }
+
+    /* ─── 标题 ─── */
+    .h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 8px; line-height: 1.3; }
+    .h2 { font-size: 1.25rem; font-weight: 600; color: #111827; margin: 24px 0 6px 0; line-height: 1.3; }
+    .h3 { font-size: 1.1rem; font-weight: 600; color: #111827; margin: 16px 0 4px 0; }
+
+    /* ─── 文本 ─── */
+    .text { font-size: 0.875rem; color: #374151; }
+    .text-secondary { color: #6b7280; }
+    .text-muted { color: #9ca3af; }
+    .p { font-size: 0.875rem; color: #374151; line-height: 1.6; margin-bottom: 12px; }
+
+    /* ─── 报告章节 ─── */
+    .report-section { margin-bottom: 24px; }
+    .section-header { margin-bottom: 12px; }
+    .section-title { font-size: 1.1rem; font-weight: 600; color: #111827; border-bottom: 2px solid #e5e7eb; padding-bottom: 6px; }
+    .section-desc { font-size: 0.875rem; color: #6b7280; margin-top: 4px; }
+
+    /* ─── Stat 指标 ─── */
+    .stat { text-align: center; padding: 12px 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #111827; }
+    .stat-label { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
+    .stat-success .stat-value { color: #16a34a; }
+    .stat-danger .stat-value { color: #dc2626; }
+    .stat-accent .stat-value { color: #2563eb; }
+
+    /* ─── Table ─── */
+    .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+    .table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .th { padding: 8px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; background: #f9fafb; }
+    .td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; }
+    .tr-success { background: #f0fdf4; }
+    .tr-accent { background: #eff6ff; }
+
+    /* ─── Card ─── */
+    .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; background: #fff; }
+    .card-subtitle { font-size: 0.875rem; color: #6b7280; margin-bottom: 8px; }
+
+    /* ─── Callout ─── */
+    .callout { border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.875rem; }
+    .callout-info { border-left: 4px solid #3b82f6; background: #eff6ff; }
+    .callout-success { border-left: 4px solid #22c55e; background: #f0fdf4; }
+    .callout-warning { border-left: 4px solid #f59e0b; background: #fffbeb; }
+    .callout-danger { border-left: 4px solid #ef4444; background: #fef2f2; }
+    .callout-title { font-weight: 600; margin-bottom: 4px; }
+    .callout-body { color: #374151; }
+
+    /* ─── Pill ─── */
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; margin-right: 4px; }
+    .pill-green { background: #dcfce7; color: #166534; }
+    .pill-red { background: #fee2e2; color: #991b1b; }
+    .pill-yellow { background: #fef9c3; color: #854d0e; }
+    .pill-blue { background: #dbeafe; color: #1e40af; }
+    .pill-gray { background: #f3f4f6; color: #374151; }
+
+    /* ─── Badge ─── */
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; background: #f3f4f6; color: #374151; }
+
+    /* ─── Code ─── */
+    .code { font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 0.8125rem; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+    .pre { font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 0.8125rem; background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; overflow-x: auto; margin-bottom: 16px; white-space: pre-wrap; }
+
+    /* ─── Timeline ─── */
+    .timeline { border-left: 2px solid #e5e7eb; padding-left: 16px; margin-bottom: 16px; }
+    .timeline-item { margin-bottom: 12px; position: relative; }
+    .timeline-dot { position: absolute; left: -21px; top: 6px; width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; }
+    .timeline-time { font-size: 0.75rem; color: #6b7280; }
+    .timeline-text { font-size: 0.875rem; color: #111827; }
+
+    /* ─── Metrics ─── */
+    .metrics-grid { display: grid; gap: 16px; margin-bottom: 16px; }
+    .metric-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center; }
+    .metric-value { font-size: 1.5rem; font-weight: 700; color: #111827; }
+    .metric-label { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
+
+    /* ─── KeyValue ─── */
+    .kv-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; }
+    .kv-label { color: #6b7280; }
+    .kv-value { color: #111827; font-weight: 500; }
+
+    /* ─── Steps ─── */
+    .steps { margin-bottom: 16px; }
+    .step { display: flex; gap: 12px; margin-bottom: 8px; }
+    .step-num { width: 24px; height: 24px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
+    .step-text { font-size: 0.875rem; color: #374151; padding-top: 2px; }
+
+    /* ─── 分隔线 ─── */
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+
+    /* ─── 降级标记 ─── */
+    .unsupported { background: #fef3c7; border: 1px solid #fbbf24; border-radius: 4px; padding: 2px 6px; font-size: 0.8125rem; color: #92400e; font-family: monospace; }
+    .unknown-component { border: 1px dashed #d1d5db; border-radius: 4px; padding: 8px; margin-bottom: 8px; }
+    .unknown-component::before { content: "⚠ " attr(data-tag); font-size: 0.75rem; color: #9ca3af; display: block; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+<div class="report-shell">
+  <div class="stack" style="display:flex;flex-direction:column;gap:24px">
+    <div class="unknown-component" data-tag="header">
+      <div class="stack" style="display:flex;flex-direction:column;gap:12px">
+        <h1 class="h1">CMP 云厂商 SDK 补全 — 完成报告</h1>
+        <span class="text text-secondary">Spec: CMP 云厂商 SDK 补全 · 2026-08-15 · 分支 feature/cmp-cloud-sdk · 提交 9dce20e</span>
+        <div class="grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px">
+          <div class="stat stat-default">
+            <div class="stat-value">2</div>
+            <div class="stat-label">新增云厂商</div>
+          </div>
+          <div class="stat stat-default">
+            <div class="stat-value">32</div>
+            <div class="stat-label">扫描方法</div>
+          </div>
+          <div class="stat stat-default">
+            <div class="stat-value">9</div>
+            <div class="stat-label">变更文件</div>
+          </div>
+          <div class="stat stat-default">
+            <div class="stat-value">+1247</div>
+            <div class="stat-label">新增代码行</div>
+          </div>
+        </div>
+      </div>
+    </div>
+<hr class="divider" />
+    <section class="report-section">
+      <div class="section-header">
+        <h2 class="section-title">关键成果</h2>
+      <p class="section-desc">AWS 与华为云 Client 从零到全量实现，并打通注册与同步链路</p>
+      </div>
+      <div class="section-body">
+      <div class="stack" style="display:flex;flex-direction:column;gap:12px">
+        <div class="callout callout-info">
+          <div class="callout-title">注册链路修复</div>
+          <div class="callout-body">clients/__init__.py 此前未导入任何厂商子包，register_client 装饰器从未执行， 注册表实际为空（连阿里云/腾讯云都无法通过 get_client 获取）。已补充 4 家子包导入。</div>
+        </div>
+        <div class="callout callout-warning">
+          <div class="callout-title">sync_all 计数 bug 修复</div>
+          <div class="callout-body">sync.py 全量同步中 int 与 dict 相加（0 + 
+          <span class="unsupported" title="解析器降级">'created': ...</span>
+）导致 TypeError， 该路径此前从未跑通。新增 _merge_count 统一累加计数。</div>
+        </div>
+      </div>
+      </div>
+    </section>
+<hr class="divider" />
+    <section class="report-section">
+      <div class="section-header">
+        <h2 class="section-title">新增 Client 实现</h2>
+      <p class="section-desc">16 个方法覆盖计算/网络/数据库/域名/财务</p>
+      </div>
+      <div class="section-body">
+      <div class="grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
+        <div class="stack" style="display:flex;flex-direction:column;gap:12px">
+          <h2 class="h2">AWS Client（clients/aws/client.py，524 行）</h2>
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th class="th">资源域</th><th class="th">boto3 服务</th><th class="th">方法</th></tr></thead>
+              <tbody>
+                <tr class="tr"><td class="td">区域/可用区</td><td class="td">ec2</td><td class="td">scan_regions / scan_zones</td></tr>
+<tr class="tr"><td class="td">计算</td><td class="td">ec2</td><td class="td">hosts / disks / images / snapshots</td></tr>
+<tr class="tr"><td class="td">网络</td><td class="td">ec2 + elb/elbv2</td><td class="td">vpcs / security_groups / eips / load_balancers</td></tr>
+<tr class="tr"><td class="td">数据库</td><td class="td">rds / elasticache / docdb</td><td class="td">scan_rds / scan_redis / scan_mongo</td></tr>
+<tr class="tr"><td class="td">域名</td><td class="td">route53</td><td class="td">scan_domains / scan_domain_records</td></tr>
+<tr class="tr"><td class="td">财务</td><td class="td">ce</td><td class="td">get_balance</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="text text-secondary">分页：NextToken / Marker 双模式；字段映射 InstanceId 到 inst_id、State.Name 到 status</span>
+        </div>
+        <div class="stack" style="display:flex;flex-direction:column;gap:12px">
+          <h2 class="h2">华为云 Client（clients/huawei/client.py，663 行）</h2>
+          <div class="table-wrap">
+            <table class="table">
+              <thead><tr><th class="th">资源域</th><th class="th">SDK 包</th><th class="th">方法</th></tr></thead>
+              <tbody>
+                <tr class="tr"><td class="td">区域/可用区</td><td class="td">huaweicloudsdkecs</td><td class="td">scan_regions / scan_zones</td></tr>
+<tr class="tr"><td class="td">计算</td><td class="td">ecs + evs</td><td class="td">hosts / disks / images / snapshots</td></tr>
+<tr class="tr"><td class="td">网络</td><td class="td">vpc + elb</td><td class="td">vpcs / security_groups / eips / load_balancers</td></tr>
+<tr class="tr"><td class="td">数据库</td><td class="td">rds / dcs / dds</td><td class="td">scan_rds / scan_redis / scan_mongo</td></tr>
+<tr class="tr"><td class="td">域名</td><td class="td">（首批暂空）</td><td class="td">scan_domains / scan_domain_records</td></tr>
+<tr class="tr"><td class="td">财务</td><td class="td">（可选）</td><td class="td">get_balance</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <span class="text text-secondary">分页：marker + offset；状态映射 ACTIVE 到 Running、SHUTOFF 到 Stopped</span>
+        </div>
+      </div>
+      </div>
+    </section>
+<hr class="divider" />
+    <section class="report-section">
+      <div class="section-header">
+        <h2 class="section-title">注册与打通</h2>
+      <p class="section-desc">四层联动，双前端可选</p>
+      </div>
+      <div class="section-body">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th class="th">层</th><th class="th">文件</th><th class="th">变更</th></tr></thead>
+          <tbody>
+            <tr class="tr"><td class="td">注册表</td><td class="td">clients/registry.py</td><td class="td">get_supported_cloud_types 补充 '3'=AWS、'4'=华为云</td></tr>
+<tr class="tr"><td class="td">包导入</td><td class="td">clients/__init__.py</td><td class="td">导入 aliyun/tencent/aws/huawei 子包触发装饰器</td></tr>
+<tr class="tr"><td class="td">依赖</td><td class="td">requirements.txt</td><td class="td">boto3 + 7 个 huaweicloudsdk 包（core/ecs/vpc/rds/dcs/dds/elb）</td></tr>
+<tr class="tr"><td class="td">前端</td><td class="td">CmpSettingsPage.tsx</td><td class="td">云厂商下拉补充 AWS(3)、华为云(4)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      </div>
+    </section>
+<hr class="divider" />
+    <section class="report-section">
+      <div class="section-header">
+        <h2 class="section-title">验证证据</h2>
+      <p class="section-desc">当前工作区实测结果</p>
+      </div>
+      <div class="section-body">
+      <div class="stack" style="display:flex;flex-direction:column;gap:12px">
+        <div class="table-wrap">
+          <table class="table">
+            <thead><tr><th class="th">验证项</th><th class="th">结果</th></tr></thead>
+            <tbody>
+              <tr class="tr"><td class="td">注册表完整性</td><td class="td">registry keys = ['1','2','3','4']，supported 含 ('3','AWS')、('4','华为云')</td></tr>
+<tr class="tr"><td class="td">抽象方法实现</td><td class="td">4 家 Client abstract_left 均为空（13 个抽象方法全部实现）</td></tr>
+<tr class="tr"><td class="td">端到端同步</td><td class="td">mock SyncDispatcher.sync_all 写入数据库成功（regions/zones/vpcs/hosts 各 1 条）</td></tr>
+<tr class="tr"><td class="td">Django check</td><td class="td">通过，仅预存的 cmp namespace 警告</td></tr>
+<tr class="tr"><td class="td">前端类型</td><td class="td">tsc --noEmit 无 CmpSettingsPage 错误</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <span class="text text-secondary">环境依赖：本地已安装 boto3 1.43.72 与 huaweicloudsdkcore；其余 SDK 包按 requirements.txt 部署安装。 真实 API 调用需真实云 AK/SK，本环境未做线上验证。</span>
+      </div>
+      </div>
+    </section>
+<hr class="divider" />
+    <section class="report-section">
+      <div class="section-header">
+        <h2 class="section-title">路线图标注</h2>
+      <p class="section-desc">Phase 2-4 仅标记，不在本次范围</p>
+      </div>
+      <div class="section-body">
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th class="th">阶段</th><th class="th">范围</th><th class="th">状态</th></tr></thead>
+          <tbody>
+            <tr class="tr"><td class="td">Phase 2</td><td class="td">Azure(5)、vCenter(6)：认证模型不同（订阅ID+租户ID / 用户名密码）</td><td class="td">待排期</td></tr>
+<tr class="tr"><td class="td">Phase 3</td><td class="td">OpsAny 14 家公有云剩余：Azure中国区/AWS中国区/火山引擎/金山云/百度云/七牛云/浪潮云/天翼云</td><td class="td">待排期</td></tr>
+<tr class="tr"><td class="td">Phase 4</td><td class="td">OpsAny 9 家私有云：OpenStack/Proxmox/ZStack/SmartX/ManageOne/XVP/金豆云/云通</td><td class="td">待排期</td></tr>
+          </tbody>
+        </table>
+      </div>
+      </div>
+    </section>
+    <span class="text text-secondary">完成报告 · Qoder Quest · 2026-08-15</span>
+  </div>
+</div>
+</body>
+</html>

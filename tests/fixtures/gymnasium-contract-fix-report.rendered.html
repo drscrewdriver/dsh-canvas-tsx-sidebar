@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>gymnasium-contract-fix-report</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #111827; line-height: 1.6; }
+    .report-shell { max-width: 800px; margin: 0 auto; padding: 24px 32px; background: #fff; border-radius: 12px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.08); margin-top: 24px; margin-bottom: 24px; }
+    .stack { display: flex; flex-direction: column; }
+    .grid { display: grid; }
+    .row { display: flex; gap: 12px; }
+    .column { flex: 1; min-width: 0; }
+    .h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 8px; line-height: 1.3; }
+    .h2 { font-size: 1.25rem; font-weight: 600; color: #111827; margin: 24px 0 6px 0; line-height: 1.3; }
+    .h3 { font-size: 1.1rem; font-weight: 600; color: #111827; margin: 16px 0 4px 0; }
+    .text { font-size: 0.875rem; color: #374151; }
+    .text-secondary { color: #6b7280; }
+    .text-small, .text-sm { font-size: 0.75rem; }
+    .p { font-size: 0.875rem; color: #374151; line-height: 1.6; margin-bottom: 12px; }
+    .report-section { margin-bottom: 24px; }
+    .section-header { margin-bottom: 12px; }
+    .section-title { font-size: 1.1rem; font-weight: 600; color: #111827; border-bottom: 2px solid #e5e7eb; padding-bottom: 6px; }
+    .section-desc { font-size: 0.875rem; color: #6b7280; margin-top: 4px; }
+    .stat { text-align: center; padding: 12px 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa; }
+    .stat-value { font-size: 1.5rem; font-weight: 700; color: #111827; }
+    .stat-label { font-size: 0.75rem; color: #6b7280; margin-bottom: 4px; }
+    .table-wrap { overflow-x: auto; margin-bottom: 16px; border: 1px solid #e5e7eb; border-radius: 8px; }
+    .table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    .th { padding: 8px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; background: #f9fafb; }
+    .td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; }
+    .tr-success { background: #f0fdf4; } .tr-success .td { border-bottom-color: #bbf7d0; }
+    .tr-warning { background: #fffbeb; } .tr-warning .td { border-bottom-color: #fde68a; }
+    .tr-danger { background: #fef2f2; } .tr-danger .td { border-bottom-color: #fecaca; }
+    .tr-accent { background: #eff6ff; }
+    .tr-muted { background: #f9fafb; }
+    .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; background: #fff; }
+    .card-header { font-weight: 600; margin-bottom: 8px; }
+    .card-body { }
+    .card-subtitle { font-size: 0.875rem; color: #6b7280; margin-bottom: 8px; }
+    .callout { border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.875rem; }
+    .callout-info { border-left: 4px solid #3b82f6; background: #eff6ff; }
+    .callout-success { border-left: 4px solid #22c55e; background: #f0fdf4; }
+    .callout-warning { border-left: 4px solid #f59e0b; background: #fffbeb; }
+    .callout-danger { border-left: 4px solid #ef4444; background: #fef2f2; }
+    .callout-neutral { border-left: 4px solid #6b7280; background: #f9fafb; }
+    .callout-title { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
+    .callout-icon { font-size: 1rem; line-height: 1; }
+    .callout-body { color: #374151; }
+    .banner { border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.875rem; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; margin-right: 4px; }
+    .pill-green, .pill-success { background: #dcfce7; color: #166534; }
+    .pill-red, .pill-danger { background: #fee2e2; color: #991b1b; }
+    .pill-yellow, .pill-warning { background: #fef9c3; color: #854d0e; }
+    .pill-blue, .pill-info { background: #dbeafe; color: #1e40af; }
+    .pill-gray, .pill-neutral { background: #f3f4f6; color: #374151; }
+    .tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
+    .tag-success { background: #dcfce7; color: #166534; }
+    .tag-danger { background: #fee2e2; color: #991b1b; }
+    .tag-warning { background: #fef9c3; color: #854d0e; }
+    .tag-info { background: #dbeafe; color: #1e40af; }
+    .tag-neutral { background: #f3f4f6; color: #374151; }
+    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; background: #f3f4f6; color: #374151; }
+    .code { font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 0.8125rem; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
+    .pre { font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 0.8125rem; background: #1e1e1e; color: #d4d4d4; padding: 16px; border-radius: 8px; overflow-x: auto; margin-bottom: 16px; white-space: pre-wrap; }
+    .timeline { border-left: 2px solid #e5e7eb; padding-left: 20px; margin-bottom: 16px; }
+    .timeline-item { margin-bottom: 16px; position: relative; }
+    .timeline-dot { position: absolute; left: -25px; top: 4px; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; border: 2px solid #fff; box-shadow: 0 0 0 2px #e5e7eb; }
+    .timeline-time { font-size: 0.75rem; color: #6b7280; margin-bottom: 2px; }
+    .timeline-title { font-size: 0.9375rem; font-weight: 600; color: #111827; margin-bottom: 4px; }
+    .timeline-desc { font-size: 0.8125rem; color: #6b7280; line-height: 1.5; }
+    .metrics-grid { display: grid; gap: 16px; margin-bottom: 16px; }
+    .metric-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px; text-align: center; }
+    .metric-value { font-size: 1.5rem; font-weight: 700; color: #111827; }
+    .metric-label { font-size: 0.75rem; color: #6b7280; margin-top: 4px; }
+    .kv-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f3f4f6; font-size: 0.875rem; }
+    .kv-label { color: #6b7280; }
+    .kv-value { color: #111827; font-weight: 500; }
+    .steps { margin-bottom: 16px; }
+    .step { display: flex; gap: 12px; margin-bottom: 8px; }
+    .step-num { width: 24px; height: 24px; border-radius: 50%; background: #3b82f6; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; flex-shrink: 0; }
+    .step-text { font-size: 0.875rem; color: #374151; padding-top: 2px; }
+    .divider { border: none; border-top: 1px solid #e5e7eb; margin: 24px 0; }
+    .canvas-image { margin: 0 0 16px 0; }
+    .canvas-image img { display: block; width: 100%; }
+    .img-caption { font-size: 0.8125rem; color: #6b7280; margin-top: 6px; text-align: left; }
+    .canvas-image-placeholder { margin: 0 0 16px 0; }
+    .img-placeholder-box { background: #f3f4f6; border: 1px dashed #d1d5db; border-radius: 8px; padding: 32px; text-align: center; color: #6b7280; font-size: 0.875rem; }
+    .evidence-methodology { border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px; margin-bottom: 16px; background: #fafbfc; }
+    .evi-title { font-size: 1rem; font-weight: 600; color: #111827; margin-bottom: 8px; }
+    .evi-summary { font-size: 0.875rem; color: #374151; margin-bottom: 12px; padding: 8px 12px; background: #f0fdf4; border-radius: 6px; border-left: 3px solid #22c55e; }
+    .evi-overview { font-size: 0.8125rem; color: #6b7280; margin-bottom: 12px; }
+    .evi-meta { margin-bottom: 12px; }
+    .evi-group { margin-bottom: 12px; }
+    .evi-group-title { font-size: 0.8125rem; font-weight: 600; color: #374151; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #e5e7eb; }
+    .evi-item { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.8125rem; }
+    .evi-item-label { color: #6b7280; flex: 1; }
+    .evi-item-value { color: #16a34a; font-weight: 500; text-align: right; flex: 1; }
+    .evi-accounting { font-size: 0.8125rem; color: #6b7280; margin-top: 8px; padding-top: 8px; border-top: 1px solid #e5e7eb; font-style: italic; }
+    .unsupported { background: #fef3c7; border: 1px solid #fbbf24; border-radius: 4px; padding: 2px 6px; font-size: 0.8125rem; color: #92400e; font-family: monospace; }
+    .unknown-component { border: 1px dashed #d1d5db; border-radius: 4px; padding: 8px; margin-bottom: 8px; }
+    .unknown-component::before { content: "⚠ " attr(data-tag); font-size: 0.75rem; color: #9ca3af; display: block; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<div class="stack" style="display:flex;flex-direction:column;gap:20px">
+  <h1 class="h1">Gymnasium 契约对齐终局修复 · 完成报告</h1>
+  <span class="text text-secondary">7 个 dreamerv3-torch -no-gym 副本在 gymnasium 1.3.0 下彻底摆脱旧版 gym， wrapper 栈契约一次性对齐，5 层递进验证全部通过。</span>
+  <div class="grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16pxpx">
+    <div class="stat">
+      <div class="stat-label">副本迁移完成</div>
+      <div class="stat-value" style="color:#16a34a">7/7</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">实际改动文件（wrappers.py×7 + 基座 dreamer.py）</div>
+      <div class="stat-value" style="color:#111827">2 类</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">验证层级通过</div>
+      <div class="stat-value" style="color:#16a34a">5/5</div>
+    </div>
+    <div class="stat">
+      <div class="stat-label">观测路径冒烟覆盖（proprio / pixel / no-image）</div>
+      <div class="stat-value" style="color:#111827">3 条</div>
+    </div>
+  </div>
+<hr class="divider" />
+  <h2 class="h2">成果总结</h2>
+  <div class="callout callout-success">
+    <div class="callout-title"><span class="callout-icon">✅</span> 终局状态</div>
+    <div class="callout-body">wrapper 栈的 reset/step 契约曾自相矛盾（2 元组解包 / 单值返回 / gymnasium 默认转发混用），导致"修一层冒一层"。本次按"边界分层契约"一次性穷举修复全部 不匹配点：TimeLimit 以内保持 gymnasium 合规，TimeLimit 为唯一 5→4 转换边界， TimeLimit 以上对齐 simulate 遗留契约；所有 wrapper 显式实现标准 reset 签名并向内 转发 seed/options，结构性消除 gym.Wrapper.reset 默认转发的历史 TypeError 根源。</div>
+  </div>
+  <h2 class="h2">关键步骤</h2>
+  <div class="timeline">
+    <div class="timeline-item"><div class="timeline-dot" style="background:#3b82f6"></div><div class="timeline-content"><div class="timeline-time">步骤 1</div><div class="timeline-title">UltraPlan 三视角规划</div><div class="timeline-desc">简洁性 / 正确性验证 / 最小改动三个独立方案并行探索，核对 gymnasium 1.3.0 core.py 契约，穷举 wrapper 栈全部不匹配点（M1-M10）后综合定稿。</div></div></div>
+<div class="timeline-item"><div class="timeline-dot" style="background:#3b82f6"></div><div class="timeline-content"><div class="timeline-time">步骤 2</div><div class="timeline-title">canonical wrappers.py 重写</div><div class="timeline-desc">5 处修改 + 契约注释块：TimeLimit/OneHotAction/RewardObs/SelectAction/UUID 的 reset 显式签名，RewardObs.step 4 元组解包，OneHotAction.reset 保持 2 元组。</div></div></div>
+<div class="timeline-item"><div class="timeline-dot" style="background:#3b82f6"></div><div class="timeline-content"><div class="timeline-time">步骤 3</div><div class="timeline-title">字节分发 + 基座修复</div><div class="timeline-desc">shutil.copyfile 分发到其余 6 副本（MD5 复核单值）；基座 dreamer.py MUJOCO_GL 改 glfw/osmesa 分支；清理 14 个 __pycache__。</div></div></div>
+<div class="timeline-item"><div class="timeline-dot" style="background:#3b82f6"></div><div class="timeline-content"><div class="timeline-time">步骤 4</div><div class="timeline-title">5 层递进验证</div><div class="timeline-desc">L1 静态 → L2 import → L3 真实环境链路 → L4 tools.simulate 写盘 → L5 短训练冒烟，任一层失败只在本层定位。</div></div></div>
+<div class="timeline-item"><div class="timeline-dot" style="background:#3b82f6"></div><div class="timeline-content"><div class="timeline-time">步骤 5</div><div class="timeline-title">记忆修正收尾</div><div class="timeline-desc">更正"全部通过验证"的不实任务总结（补记当时冒烟实际失败与终局修复），三连坑经验更新为边界分层契约终局模式。</div></div></div>
+  </div>
+  <h2 class="h2">变更文件</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th class="th">文件</th><th class="th">改动</th><th class="th">范围</th></tr></thead>
+      <tbody>
+        <tr class="tr"><td class="td">dreamerv3-torch-*/envs/wrappers.py</td><td class="td">边界分层契约重写：5 处 reset 显式签名 + seed 转发、RewardObs.step 4 元组、OneHotAction.reset 2 元组、契约注释块</td><td class="td">7 副本 MD5 一致（51f4fa57）</td></tr>
+<tr class="tr"><td class="td">dreamerv3-torch-no-gym/dreamer.py</td><td class="td">MUJOCO_GL 硬编码 osmesa → "glfw" if os.name == "nt" else "osmesa"</td><td class="td">基座 1 行</td></tr>
+<tr class="tr"><td class="td">各副本 __pycache__</td><td class="td">清理 14 个目录，防陈旧字节码掩盖修改</td><td class="td">7 副本</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <span class="text text-secondary text-small">明确不动：envs/dmc.py、envs/atari.py、tools.py、parallel.py、models.py、networks.py； 可选环境模块（dmlab/minecraft/memorymaze）仅标注不修；v1 家族旧 gym suite 不恢复（与摆脱旧版 gym 目标一致）。</span>
+  <h2 class="h2">验证证据</h2>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th class="th">层级</th><th class="th">范围</th><th class="th">证据</th><th class="th">结果</th></tr></thead>
+      <tbody>
+        <tr class="tr tr-success"><td class="td">L1 静态</td><td class="td">7 副本全量</td><td class="td">py_compile + UTF-8 strict + MD5 单值 + 核心文件无 import gym 残留</td><td class="td">PASS</td></tr>
+<tr class="tr tr-success"><td class="td">L2 import</td><td class="td">7 副本</td><td class="td">envs.wrappers / envs.dmc / tools / parallel 全部导入成功</td><td class="td">PASS</td></tr>
+<tr class="tr tr-success"><td class="td">L3 真实环境链路</td><td class="td">7 副本</td><td class="td">真实 DeepMindControl 组装完整 wrapper 链：reset 返回 dict（含 image/is_first/is_terminal）、step 4 元组、显式 seed 转发、时限到期 done+discount、re-reset</td><td class="td">PASS</td></tr>
+<tr class="tr tr-success"><td class="td">L4 simulate</td><td class="td">dm + no-image 2 副本</td><td class="td">make_env → Damy → tools.simulate 10 步，episode npz 写盘且含 image 键</td><td class="td">PASS</td></tr>
+<tr class="tr tr-success"><td class="td">L5 短训练冒烟</td><td class="td">3 副本 × 3 路径</td><td class="td">dm proprio/MLP、v1 pixel/CNN、no-image MLP 均完成 环境创建→prefill→eval→训练迭代→checkpoint，退出码 0；产物复核 latest.pt=True、train_npz=1、eval_npz=10</td><td class="td">PASS</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <span class="text text-secondary text-small">残留警告均无害：gymnasium Box 精度 UserWarning、torch amp FutureWarning、moviepy.editor 缺失（仅影响视频日志）。</span>
+  <h2 class="h2">执行纪律落实</h2>
+  <div class="grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16pxpx">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title">UTF-8 写入安全</div>
+      </div>
+      <div class="card-body">        <span class="text text-small">全部写入仅用 SearchReplace/Write 工具与 .venv Python utf-8 读写， 未使用任何 PowerShell Set-Content/Out-File；写后 py_compile + strict 解码双重校验。</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-header-title">幂等与锚点断言</div>
+      </div>
+      <div class="card-body">        <span class="text text-small">每处替换使用唯一锚点，匹配失败即报错不盲写；wrappers.py 7 副本字节一致， 单点编辑后二进制分发并 MD5 复核。</span>
+      </div>
+    </div>
+  </div>
+<hr class="divider" />
+  <div class="stack" style="display:flex;flex-direction:column;gap:8px">
+    <h2 class="h2">最终结论</h2>
+    <span class="text">计划全部交付物已落地并经当前文件系统复核：7 个 -no-gym 副本在 gymnasium 1.3.0 下训练链路（env 创建 → reset → step → tools.simulate → Dreamer 训练与 checkpoint） 完整可用，旧版 gym 依赖彻底清除。此前"反复冒烟反复失败"的问题由边界分层契约 + 分层验证机制终结。</span>
+    <span class="tag tag-success">AUDIT: ALL PASS · 目标已完成</span>
+  </div>
+</div>
+</body>
+</html>
