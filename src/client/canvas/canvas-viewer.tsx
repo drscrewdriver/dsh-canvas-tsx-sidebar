@@ -17,7 +17,7 @@ import { createElement, useCallback, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { extractCanvas } from './extract'
 import { CanvasDocument } from './render'
-import { CANVAS_CSS } from './styles'
+import { ensureCanvasStyles } from './stylesheet'
 import { isInsideWorkspace, isRemoteUrl, resolveMediaRef } from './paths'
 import { fsReadText, isUnavailable, mediaUrl, SidebarApiError } from './sidebar-api'
 import type { Scope } from './sidebar-api'
@@ -31,9 +31,6 @@ export interface ViewerProps {
 
 /** Viewer id — also the settings toggle key (`viewersEnabled[id]`). */
 export const VIEWER_ID = 'dsh-canvas-tsx:viewer'
-
-/** Stylesheet id — must match the tab's so they share one `<style>`. */
-const STYLE_ID = 'dsh-canvas-tsx-sidebar/styles'
 
 type ViewMode = 'preview' | 'code'
 
@@ -151,13 +148,10 @@ export function CanvasFileViewer(props: ViewerProps): ReactNode {
   const [parsed, setParsed] = useState<ReturnType<typeof extractCanvas> | undefined>(undefined)
   const [error, setError] = useState<string | undefined>(undefined)
 
-  // Inject the canvas stylesheet (idempotent — the tab may already have done it).
+  // Install the canvas stylesheet. Idempotent across surfaces, and content-
+  // addressed so a stale copy left by a previous HMR revision is refreshed.
   useEffect(() => {
-    if (document.getElementById(STYLE_ID) !== null) return
-    const style = document.createElement('style')
-    style.id = STYLE_ID
-    style.textContent = CANVAS_CSS
-    document.head.appendChild(style)
+    ensureCanvasStyles()
   }, [])
 
   // Fetch the source on mount and on path change.

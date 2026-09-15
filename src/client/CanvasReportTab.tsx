@@ -32,7 +32,7 @@ import { createElement } from 'react'
 import type { ReactNode } from 'react'
 import { extractCanvas } from './canvas/extract'
 import { CanvasDocument } from './canvas/render'
-import { CANVAS_CSS } from './canvas/styles'
+import { ensureCanvasStyles } from './canvas/stylesheet'
 import { baseName, isInsideWorkspace, isRemoteUrl, resolveMediaRef } from './canvas/paths'
 import { fsReadText, isOutsideWorkspace, isUnavailable, mediaUrl, SidebarApiError } from './canvas/sidebar-api'
 import type { Scope } from './canvas/sidebar-api'
@@ -91,19 +91,10 @@ function readMode(meta: unknown): Mode {
   return 'preview'
 }
 
-/** Stylesheet id, so re-mounting the tab cannot stack duplicate copies. */
-const STYLE_ID = 'dsh-canvas-tsx-sidebar/styles'
-
-/** Inject the document stylesheet once per page. */
+/** Install the document stylesheet, refreshing a stale copy left by HMR. */
 function useDocumentStyles(): void {
   useEffect(() => {
-    if (document.getElementById(STYLE_ID) !== null) return
-    const style = document.createElement('style')
-    style.id = STYLE_ID
-    style.textContent = CANVAS_CSS
-    document.head.appendChild(style)
-    // Left in place on unmount: removing it would flash every other mounted
-    // canvas tab, and the duplicate guard already makes re-adding a no-op.
+    ensureCanvasStyles()
   }, [])
 }
 
