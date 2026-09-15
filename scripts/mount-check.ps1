@@ -3,28 +3,37 @@
   Check (and optionally repair) the dsh-canvas-tsx-sidebar mount in a DSH profile.
 
 .DESCRIPTION
-  Read-only by default: reports whether the plugin is present in the profile's
-  node_modules and whether the profile's cordis.patch.yml carries its insert
-  row. Pass -Apply to add the missing patch row (idempotent: a second run
-  changes nothing).
+  Read-only by default. Reports, in the order they can fail:
 
-  The official CLI path (`dsh plugin --profile <p> add <pkg.tgz>`) also appends
-  the package to `dsh.profile.bundles`; this script only covers the manual
-  route. Do NOT use both.
+    1. profile directory exists
+    2. the package is present in the profile's node_modules (and where a
+       link: mount actually points)
+    3. the profile records the package in `dsh.profile.bundles` -- the load
+       list `dsh web` actually walks
+    4. this plugin's own lib/ is BUILT, because a link: mount ships whatever
+       is on disk at load time; an unbuilt package mounts to a silent no-op
+
+  Pass -Apply to add a missing `dsh.profile.bundles` entry (idempotent).
+
+  History: this script used to look only for an `insert:` row in
+  cordis.patch.yml. That is NOT how the web profile loads plugins -- its
+  patch file carries only disabled/config overrides, and every plugin is
+  listed in dsh.profile.bundles instead. The old check therefore reported a
+  healthy mount as broken and told the operator to add a row that would
+  double-register the tab.
 
   NOTE: this file is deliberately pure ASCII. Windows PowerShell 5.1 reads
-  BOM-less .ps1 files as ANSI, which mangles non-ASCII text in output and can
-  corrupt string literals on older builds.
+  BOM-less .ps1 files as ANSI, which mangles non-ASCII output.
 
 .PARAMETER Profile
   DSH profile name under ~/.dsh/profiles. Defaults to 'web'.
 
 .PARAMETER Apply
-  Write the missing insert row into the profile's cordis.patch.yml.
+  Add the missing dsh.profile.bundles entry.
 
 .EXAMPLE
   powershell -NoProfile -File ./scripts/mount-check.ps1
-  powershell -NoProfile -File ./scripts/mount-check.ps1 -Profile web -Apply
+  powershell -NoProfile -File ./scripts/mount-check.ps1 -Apply
 #>
 [CmdletBinding()]
 param(
@@ -33,10 +42,13 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
 $pluginName = 'dsh-canvas-tsx-sidebar'
 $profileDir = Join-Path $env:USERPROFILE ".dsh\profiles\$Profile"
-$patchFile  = Join-Path $profileDir 'cordis.patch.yml'
-$pkgDir     = Join-Path $profileDir "node_modules\$pluginName"
+$pkgJson    = Join-Path $profileDir 'package.json'
+$mounted    = Join-Path $profileDir "node_modules\$pluginName"
+$pluginDir  = Split-Path -Parent $PSScriptRoot
+$exitCode   = 0
 
 Write-Host "== $pluginName - mount check (profile: $Profile)" -ForegroundColor Cyan
 
@@ -46,37 +58,78 @@ if (-not (Test-Path $profileDir)) {
 }
 Write-Host "OK   profile dir      : $profileDir"
 
-if (Test-Path $pkgDir) {
-  Write-Host "OK   package present  : $pkgDir"
+# -- 2. package present ------------------------------------------------------
+if (Test-Path $mounted) {
+  $item = Get-Item $mounted -Force
+  if ($null -ne $item.LinkType) {
+    Write-Host "OK   package present  : $($item.LinkType) -> $($item.Target)"
+  } else {
+    Write-Host "OK   package present  : $mounted"
+  }
 } else {
   Write-Host "WARN package NOT in profile node_modules" -ForegroundColor Yellow
-  Write-Host "     -> run: dsh plugin --profile $Profile add <pkg.tgz>"
-  Write-Host "     -> or : pnpm add link:<plugin path> inside the profile dir"
+  Write-Host "     -> dsh plugin --profile $Profile add link:$pluginDir"
+  $exitCode = 1
 }
 
-if (-not (Test-Path $patchFile)) {
-  Write-Host "WARN no cordis.patch.yml at $patchFile" -ForegroundColor Yellow
-  exit 1
+# -- 3. bundles entry --------------------------------------------------------
+if (-not (Test-Path $pkgJson)) {
+  Write-Host "FAIL no package.json at $pkgJson" -ForegroundColor Red
+  exit 2
 }
 
-$patchText = Get-Content $patchFile -Raw
-# Match the id at the start of a YAML list item, so a mention inside a comment
-# (this plugin's own patch file documents the manual route in prose) does not
-# count as a real mount.
-$rowPresent = [regex]::IsMatch($patchText, "(?m)^\s*-\s*id:\s*['""]?$([regex]::Escape($pluginName))['""]?\s*$")
+$raw = Get-Content $pkgJson -Raw
+$listed = $false
+try {
+  $parsed = $raw | ConvertFrom-Json
+  $bundles = @($parsed.dsh.profile.bundles)
+  $listed = $bundles -contains $pluginName
+} catch {
+  Write-Host "FAIL package.json is not valid JSON: $($_.Exception.Message)" -ForegroundColor Red
+  exit 2
+}
 
-if ($rowPresent) {
-  Write-Host "OK   patch row present: $patchFile"
+if ($listed) {
+  Write-Host "OK   bundles entry    : dsh.profile.bundles ($($bundles.Count) entries)"
 } else {
-  Write-Host "WARN patch row MISSING in $patchFile" -ForegroundColor Yellow
+  Write-Host "WARN bundles entry MISSING in dsh.profile.bundles" -ForegroundColor Yellow
   if ($Apply) {
-    $block = "`n- insert:`n    - id: $pluginName`n      name: $pluginName`n"
-    Add-Content -Path $patchFile -Value $block -NoNewline -Encoding utf8
-    Write-Host "FIX  appended insert row" -ForegroundColor Green
+    Copy-Item $pkgJson "$pkgJson.bak-canvas" -Force
+    $raw = $raw -replace '(?s)("bundles"\s*:\s*\[)(.*?)(\r?\n\s*\])', "`$1`$2,`n        `"$pluginName`"`$3"
+    Set-Content $pkgJson -Value $raw -NoNewline -Encoding utf8
+    Write-Host "FIX  appended the bundles entry (backup: package.json.bak-canvas)" -ForegroundColor Green
   } else {
-    Write-Host "     -> re-run with -Apply to append it"
+    Write-Host "     -> re-run with -Apply, or add it by hand"
+    $exitCode = 1
+  }
+}
+
+# -- 4. our own build output -------------------------------------------------
+$clientBundle = Join-Path $pluginDir 'lib\client.js'
+$hostEntry    = Join-Path $pluginDir 'lib\index.mjs'
+$missing = @()
+foreach ($artifact in @($clientBundle, $hostEntry)) {
+  if (-not (Test-Path $artifact)) { $missing += $artifact }
+}
+if ($missing.Count -eq 0) {
+  $size = (Get-Item $clientBundle).Length
+  Write-Host "OK   plugin built     : lib/client.js ($size B), lib/index.mjs"
+} else {
+  Write-Host "FAIL plugin NOT built - a link: mount loads whatever is on disk" -ForegroundColor Red
+  Write-Host "     -> npm run build   (in $pluginDir)"
+  $exitCode = 2
+}
+
+# -- informational: the legacy patch-row route -------------------------------
+$patchFile = Join-Path $profileDir 'cordis.patch.yml'
+if (Test-Path $patchFile) {
+  $patchText = Get-Content $patchFile -Raw
+  $rowPresent = [regex]::IsMatch($patchText, "(?m)^\s*-\s*id:\s*['""]?$([regex]::Escape($pluginName))['""]?\s*$")
+  if ($rowPresent) {
+    Write-Host "INFO patch row also present in cordis.patch.yml (not required)" -ForegroundColor DarkGray
   }
 }
 
 Write-Host ""
 Write-Host "Remember: a NEW bundle needs a 'dsh web' restart, then a hard browser refresh." -ForegroundColor DarkGray
+exit $exitCode
