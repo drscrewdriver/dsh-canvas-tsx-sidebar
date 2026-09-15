@@ -1,3 +1,6 @@
+# pnpm 10+ 默认拦截依赖的安装脚本，这里显式表态：
+# esbuild —— tsdown 的底层打包器，二进制缺失则构建直接失败，必须放行。
+# node-pty —— 传递依赖带来的原生模块，本插件不申请任何终端能力，明确拒绝构建。
 allowBuilds:
-  esbuild: set this to true or false
-  node-pty: set this to true or false
+  esbuild: true
+  node-pty: false
