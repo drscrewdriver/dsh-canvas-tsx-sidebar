@@ -33,7 +33,11 @@ export const CANVAS_CSS = `
 }
 
 /* ── page + shell ─────────────────────────────────────────────────────── */
-.dsh-canvas-doc .page-wrap { max-width: 780px; margin: 0 auto; padding: 20px; }
+.dsh-canvas-doc .page-wrap {
+  max-width: 780px; margin: 0 auto; padding: 20px;
+  /* Enable container queries so grids respond to sidebar width, not viewport. */
+  container-type: inline-size;
+}
 .dsh-canvas-doc .report-shell {
   background: #fff; border-radius: 8px; border: 1px solid #d1d5db;
   box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 20px 24px; overflow: hidden;
@@ -41,12 +45,46 @@ export const CANVAS_CSS = `
 
 /* ── layout ───────────────────────────────────────────────────────────── */
 .dsh-canvas-doc .stack { display: flex; flex-direction: column; }
-.dsh-canvas-doc .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+.dsh-canvas-doc .grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  /* Also a container, so a grid nested in a grid measures its own track. */
+  container-type: inline-size;
+}
 .dsh-canvas-doc .row { display: flex; gap: 12px; }
 .dsh-canvas-doc .column { flex: 1; min-width: 0; }
-/* A 4-column grid drops straight to 2 columns — never through 3. */
-@media (max-width: 640px) { .dsh-canvas-doc .grid-4 { grid-template-columns: repeat(2, 1fr) !important; } }
-@media (max-width: 480px) { .dsh-canvas-doc .grid-3, .dsh-canvas-doc .grid-4 { grid-template-columns: repeat(2, 1fr) !important; } }
+
+/*
+ * Container queries — the fix for "the 4 stat blocks never collapse".
+ *
+ * An @media query measures the VIEWPORT. A narrow sidebar inside a wide window
+ * never triggers it, so a columns={4} grid stayed 4-up no matter how little
+ * room it actually had. @container measures an element's own inline size.
+ *
+ * Which element is the container matters. .page-wrap is the document's width
+ * authority, so a top-level grid measures the real content column. .grid is
+ * ALSO a container so a grid nested inside another grid measures its own track
+ * (half the page-wrap) rather than the full page width.
+ *
+ * Thresholds account for the padding the layout eats before a track sees any
+ * width: page-wrap 20px x2 + report-shell 20/24px. A 4-track grid needs ~118px
+ * per track to keep a Stat label on one line, so it collapses once the
+ * container drops below 560px — 4 -> 2 directly, never through 3.
+ */
+@container (max-width: 560px) {
+  .dsh-canvas-doc .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@container (max-width: 440px) {
+  .dsh-canvas-doc .grid-3,
+  .dsh-canvas-doc .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+}
+@container (max-width: 300px) {
+  .dsh-canvas-doc .grid-2,
+  .dsh-canvas-doc .grid-3,
+  .dsh-canvas-doc .grid-4 { grid-template-columns: minmax(0, 1fr) !important; }
+}
+/* Fallback for engines without container query support (pre-2023 browsers). */
+@media (max-width: 560px) { .dsh-canvas-doc .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+@media (max-width: 440px) { .dsh-canvas-doc .grid-3, .dsh-canvas-doc .grid-4 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
 
 /* ── headings + text ──────────────────────────────────────────────────── */
 .dsh-canvas-doc .h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin-bottom: 8px; line-height: 1.3; }

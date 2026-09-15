@@ -65,8 +65,13 @@ describe('stylesheet — every rule is scoped to the document root', () => {
   it('no selector can leak into the host sidebar UI', () => {
     // Bare `.card` / `.table` / `*` rules inside the DSH sidebar would restyle
     // the host's own chrome. This is the guard for that.
+    //
+    // Comments are stripped first: prose legitimately contains braces (e.g. a
+    // mention of `columns={4}`), and scanning raw text reported those as
+    // unscoped selectors.
+    const rules = CANVAS_CSS.replace(/\/\*[\s\S]*?\*\//g, '')
     const offenders: string[] = []
-    for (const line of CANVAS_CSS.split('\n')) {
+    for (const line of rules.split('\n')) {
       for (const match of line.matchAll(/([^{}]+)\{/g)) {
         const selector = (match[1] as string).trim()
         if (selector.startsWith('@')) continue
@@ -74,6 +79,21 @@ describe('stylesheet — every rule is scoped to the document root', () => {
       }
     }
     expect(offenders, offenders.join('\n')).toEqual([])
+  })
+
+  it('container queries are scoped too', () => {
+    // `@container` rules carry their own selectors inside the block; the guard
+    // above cannot see them because the `@container` line itself is skipped.
+    const blocks = CANVAS_CSS.match(/@container[^{]*\{([\s\S]*?)\n\}/g) ?? []
+    expect(blocks.length).toBeGreaterThan(0)
+    for (const block of blocks) {
+      // Drop the at-rule prelude (`@container (max-width: …)`) — only the
+      // declarations inside the block carry selectors.
+      const body = block.slice(block.indexOf('{') + 1)
+      for (const match of body.matchAll(/([^{}]+)\{/g)) {
+        expect((match[1] as string).trim()).toContain(`.${CANVAS_ROOT_CLASS}`)
+      }
+    }
   })
 })
 
@@ -87,8 +107,18 @@ describe('Grid — the column count never passes through an intermediate step', 
   })
 
   it('the 4 -> 2 breakpoint exists and skips 3', () => {
-    expect(CANVAS_CSS).toContain('@media (max-width: 640px)')
-    expect(CANVAS_CSS).toMatch(/\.grid-4\s*\{\s*grid-template-columns:\s*repeat\(2,\s*1fr\)/)
+    // Container query measures the sidebar's own width, not the viewport: a
+    // narrow sidebar inside a wide window still collapses.
+    expect(CANVAS_CSS).toContain('@container (max-width: 560px)')
+    // `page-wrap` and `grid` are the measurement roots.
+    expect(CANVAS_CSS).toMatch(/\.page-wrap\s*\{[^}]*container-type:\s*inline-size/)
+    expect(CANVAS_CSS).toMatch(/\.grid\s*\{[^}]*container-type:\s*inline-size/)
+    // Fallback @media for engines without container query support.
+    expect(CANVAS_CSS).toContain('@media (max-width: 560px)')
+    // 4 collapses straight to 2 — a `repeat(3, …)` track would mean an
+    // intermediate step came back.
+    expect(CANVAS_CSS).toMatch(/\.grid-4\s*\{\s*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/)
+    expect(CANVAS_CSS).not.toContain('repeat(3,')
   })
 })
 
