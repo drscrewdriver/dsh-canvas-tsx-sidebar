@@ -33,6 +33,7 @@ import type { ReactNode } from 'react'
 import { extractCanvas } from './canvas/extract'
 import { CanvasDocument } from './canvas/render'
 import { CANVAS_CSS } from './canvas/styles'
+import { baseName, isInsideWorkspace, isRemoteUrl, resolveMediaRef } from './canvas/paths'
 import { fsReadText, isOutsideWorkspace, isUnavailable, mediaUrl, SidebarApiError } from './canvas/sidebar-api'
 import type { Scope } from './canvas/sidebar-api'
 import type { ExtractResult } from './canvas/ir'
@@ -71,61 +72,6 @@ type Status = 'no-path' | 'loading' | 'ready' | 'error'
 
 /** Stylesheet id, so re-mounting the tab cannot stack duplicate copies. */
 const STYLE_ID = 'dsh-canvas-tsx-sidebar/styles'
-
-/** Bare file name of any path spelling. */
-function baseName(path: string): string {
-  return path.replace(/\\/g, '/').split('/').pop() ?? path
-}
-
-/** Directory part of a '/'-separated path. */
-function dirOf(path: string): string {
-  const cut = path.lastIndexOf('/')
-  return cut === -1 ? '' : path.slice(0, cut)
-}
-
-/**
- * Resolve a `canvasImage()` reference against the canvas file's directory.
- * Normalises `.` and `..` so `./a/../b.png` and `b.png` agree.
- */
-function resolveRef(dir: string, ref: string): string {
-  const raw = ref.startsWith('/') ? ref.slice(1) : dir === '' ? ref : `${dir}/${ref}`
-  const out: string[] = []
-  for (const part of raw.split('/')) {
-    if (part === '' || part === '.') continue
-    if (part === '..') {
-      out.pop()
-      continue
-    }
-    out.push(part)
-  }
-  return out.join('/')
-}
-
-/** Whether a path is written as absolute (Windows drive, UNC, or POSIX root). */
-function isAbsolutePath(path: string): boolean {
-  return /^[A-Za-z]:[\\/]/.test(path) || path.startsWith('\\\\') || path.startsWith('/')
-}
-
-/** Normalise for comparison only: slashes unified, no trailing slash, lowercase. */
-function comparable(path: string): string {
-  return path.replace(/\\/g, '/').replace(/\/+$/, '').toLowerCase()
-}
-
-/**
- * Our own workspace fence.
- *
- * better-sidebar's route blocks RELATIVE traversal (`../../x` -> 400) but not
- * absolute paths — a probe of this very deployment read `C:/Windows/win.ini`
- * and the profile's `package.json` straight through. The user types this path,
- * so we introduce nothing hostile; but a pasted-in path from elsewhere would
- * otherwise turn the tab into an arbitrary-file reader. Refusing to widen that
- * is cheap, so we do.
- */
-export function isInsideWorkspace(cwd: string | undefined, path: string): boolean {
-  if (!isAbsolutePath(path)) return true
-  if (cwd === undefined || cwd === '') return false
-  return comparable(path).startsWith(`${comparable(cwd)}/`)
-}
 
 /** Inject the document stylesheet once per page. */
 function useDocumentStyles(): void {
@@ -275,27 +221,20 @@ export function CanvasReportTab(props: CanvasReportTabProps): ReactNode {
   }, [draft, scope.cwd, service, tab, t])
 
   // ── image seam ────────────────────────────────────────────────────────
-  const baseDir = path === undefined ? '' : dirOf(path.replace(/\\/g, '/'))
   const resolveImage = useCallback(
     (ref: string): string | undefined => {
-      // A literal URL or data URI needs no host round-trip.
-      if (ref.startsWith('data:') || /^https?:\/\//i.test(ref)) return ref
-
-      // An absolute reference must be checked BEFORE joining: `resolveRef`
-      // would otherwise mangle `C:/x.png` into the harmless-looking relative
-      // `try/C:/x.png`, sailing straight past the fence.
-      if (isAbsolutePath(ref)) {
-        return isInsideWorkspace(scope.cwd, ref) ? mediaUrl(scope, ref) : undefined
-      }
-
-      const joined = resolveRef(baseDir, ref)
-      // `resolveRef` collapses `..`, so anything still climbing after that is
-      // an escape attempt; the host would 400 it, but the placeholder is a
-      // better answer than a broken image.
-      if (joined.startsWith('..')) return undefined
-      return isInsideWorkspace(scope.cwd, joined) ? mediaUrl(scope, joined) : undefined
+      // A remote URL or data URI needs no host round-trip.
+      if (isRemoteUrl(ref)) return ref
+      // `resolveMediaRef` normalises while PRESERVING the root, so an
+      // absolute reference stays absolute and cannot be smuggled past the
+      // fence as a relative-looking `dir/C:/x.png`.
+      const candidate = resolveMediaRef(ref, path ?? '')
+      if (candidate === undefined) return undefined
+      // The host's media route honours its own `workspaceFence` setting,
+      // which is user-disableable — so we hold the line ourselves.
+      return isInsideWorkspace(scope.cwd, candidate) ? mediaUrl(scope, candidate) : undefined
     },
-    [scope, baseDir],
+    [scope, path],
   )
 
   // ── render ────────────────────────────────────────────────────────────

@@ -15,7 +15,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { Root } from 'react-dom/client'
-import { CanvasReportTab, isInsideWorkspace } from '../src/client/CanvasReportTab'
+import { CanvasReportTab } from '../src/client/CanvasReportTab'
+import { isInsideWorkspace } from '../src/client/canvas/paths'
 
 /** A semicolon-less canvas file with one screenshot. */
 const CANVAS_SOURCE = `import { H1, Stack, Text, canvasImage } from 'qoder/canvas'
@@ -189,7 +190,8 @@ describe('a named path renders', () => {
     await mount({ path: 'try/report.canvas.tsx' })
     const img = container.querySelector('img')
     const src = img?.getAttribute('src') ?? ''
-    expect(src.startsWith('/sidebar/file?')).toBe(true)
+    // Origin-absolute, mirroring better-sidebar's own mediaUrl.
+    expect(src).toContain('/sidebar/file?')
     expect(decodeURIComponent(src)).toContain('path=try/shot.png')
     expect(src).not.toContain('base64')
   })

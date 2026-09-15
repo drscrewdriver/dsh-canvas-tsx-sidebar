@@ -128,10 +128,15 @@ export async function fsReadText(
 /**
  * Absolute URL of the media route for one path — how the document's
  * `<img src>` values are served without base64-encoding them into the tree.
- * Mirrors the sidebar's own `mediaUrl`; the route only serves images.
+ *
+ * Returned ORIGIN-ABSOLUTE, matching better-sidebar's own `mediaUrl`: a
+ * relative URL would break the moment the markup is rendered anywhere with a
+ * different base (an iframe, a blob document), and their shared markdown
+ * renderer only accepts absolute http(s) image URLs.
  */
 export function mediaUrl(scope: Scope, path: string): string {
   const params = new URLSearchParams({ sessionId: scope.sessionId, path })
   if (scope.cwd !== undefined && scope.cwd !== '') params.set('cwd', scope.cwd)
-  return `/sidebar/file?${params.toString()}`
+  const origin = typeof window === 'undefined' ? '' : window.location.origin
+  return `${origin}/sidebar/file?${params.toString()}`
 }
