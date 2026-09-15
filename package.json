@@ -4,6 +4,15 @@
   "description": "DSH web plugin (dsh-better-sidebar consumer): render Qoder Canvas `*.canvas.tsx` reports as a structured page in the right sidebar. Static parse only — no code execution.",
   "type": "module",
   "main": "lib/index.mjs",
+  "types": "lib/types/index.d.ts",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/drscrewdriver/dsh-canvas-tsx-sidebar.git"
+  },
+  "homepage": "https://github.com/drscrewdriver/dsh-canvas-tsx-sidebar#readme",
+  "bugs": {
+    "url": "https://github.com/drscrewdriver/dsh-canvas-tsx-sidebar/issues"
+  },
   "exports": {
     ".": {
       "types": "./lib/types/index.d.ts",
@@ -62,6 +71,7 @@
   },
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('lib',{recursive:true,force:true})\" && tsc -p tsconfig.build.json && tsdown --config-loader tsx",
+    "prepublishOnly": "npm run build",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.client.json",
     "test": "vitest run",
     "audit:bundle": "node scripts/audit-bundle.cjs lib/client.js",
