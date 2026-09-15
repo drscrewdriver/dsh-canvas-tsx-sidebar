@@ -42,6 +42,8 @@ import type { ExtractResult } from './canvas/ir'
 export interface CanvasTabHandle {
   readonly id: string
   readonly path?: string
+  /** Plugin-owned JSON blob persisted with the layout (`SidebarTab.meta`). */
+  readonly meta?: unknown
 }
 
 /** The store write face this component uses — `BetterSidebarService`'s tab updater. */
@@ -69,6 +71,25 @@ export interface CanvasReportTabProps {
 }
 
 type Status = 'no-path' | 'loading' | 'ready' | 'error'
+
+/**
+ * Which half of the preview/edit pair is showing.
+ *
+ * DSH's own code/preview toggle lives in the editor toolbar and is only
+ * offered by viewers that implement it (markdown, html). A plugin cannot get
+ * one for `.canvas.tsx`: `extOf()` matches on the last dot segment, so
+ * `exts: ['canvas.tsx']` can never fire, `exts: ['tsx']` would claim every TSX
+ * in the workspace, `detect` is only consulted for binary results, and there
+ * is no per-path predicate or delegation in the match loop. So the toggle
+ * lives here, in the one surface we do own.
+ */
+type Mode = 'preview' | 'code'
+
+/** Read the persisted mode out of the tab's own meta blob. */
+function readMode(meta: unknown): Mode {
+  if (meta !== null && typeof meta === 'object' && (meta as { mode?: unknown }).mode === 'code') return 'code'
+  return 'preview'
+}
 
 /** Stylesheet id, so re-mounting the tab cannot stack duplicate copies. */
 const STYLE_ID = 'dsh-canvas-tsx-sidebar/styles'
@@ -132,6 +153,55 @@ const BUTTON_STYLE = {
   whiteSpace: 'nowrap',
 } as const
 
+/** Segmented code/preview control: the container. */
+const SEGMENT_STYLE = {
+  display: 'inline-flex',
+  border: '1px solid var(--dsw-alias-border-secondary)',
+  borderRadius: 6,
+  overflow: 'hidden',
+  flexShrink: 0,
+} as const
+
+/**
+ * One segment, idle.
+ *
+ * `fontWeight` is declared on BOTH segments on purpose: React warns (and the
+ * style can go stale) when a rerender REMOVES a longhand that a `font`
+ * shorthand in the same object still sets. Declaring it everywhere means the
+ * property is only ever replaced, never removed.
+ */
+const SEGMENT_OFF_STYLE = {
+  border: 'none',
+  background: 'var(--dsw-alias-bg-layer-2)',
+  color: 'var(--dsw-alias-label-tertiary)',
+  padding: '3px 10px',
+  cursor: 'pointer',
+  font: 'inherit',
+  fontSize: 12,
+  fontWeight: 400,
+  whiteSpace: 'nowrap',
+} as const
+
+/** One segment, active. */
+const SEGMENT_ON_STYLE = {
+  ...SEGMENT_OFF_STYLE,
+  background: 'var(--dsw-alias-bg-layer-3, var(--dsw-alias-bg-layer-2))',
+  color: 'var(--dsw-alias-label-primary)',
+  fontWeight: 600,
+} as const
+
+/** The raw-source view. */
+const CODE_STYLE = {
+  margin: 0,
+  padding: '10px 12px',
+  fontFamily: "'SF Mono', Monaco, Consolas, monospace",
+  fontSize: 12,
+  lineHeight: 1.55,
+  whiteSpace: 'pre',
+  tabSize: 2,
+  color: 'var(--dsw-alias-label-secondary)',
+} as const
+
 /** Centred message block used by every non-document state. */
 function Notice(props: { title: string; detail?: ReactNode }): ReactNode {
   return createElement(
@@ -164,6 +234,10 @@ export function CanvasReportTab(props: CanvasReportTabProps): ReactNode {
   const [status, setStatus] = useState<Status>(seeded === undefined ? 'no-path' : 'loading')
   const [parsed, setParsed] = useState<ExtractResult | undefined>(undefined)
   const [error, setError] = useState<string | undefined>(undefined)
+  /** The raw source, kept so the code view needs no second read. */
+  const [source, setSource] = useState<string | undefined>(undefined)
+  /** Code or preview; persisted in `tab.meta` so it survives a reload. */
+  const [mode, setMode] = useState<Mode>(() => readMode(tab?.meta))
 
   // Adopt a path that arrives from outside (another plugin opening this tab
   // with a seed, or a restored layout) without fighting the user's typing.
@@ -184,6 +258,7 @@ export function CanvasReportTab(props: CanvasReportTabProps): ReactNode {
     fsReadText(scope, path, controller.signal)
       .then(file => {
         if (controller.signal.aborted) return
+        setSource(file.content)
         setParsed(extractCanvas(file.content))
         setStatus('ready')
       })
@@ -238,6 +313,38 @@ export function CanvasReportTab(props: CanvasReportTabProps): ReactNode {
   )
 
   // ── render ────────────────────────────────────────────────────────────
+  /** Flip code/preview and persist the choice on the tab. */
+  const switchMode = (next: Mode): void => {
+    setMode(next)
+    try {
+      service?.updateTab(tab?.id ?? '', { meta: { mode: next } })
+    } catch {
+      // Same capability caveat as the path write-back: the view still works.
+    }
+  }
+
+  // Only offered once there is something to flip between.
+  const toggle =
+    source === undefined
+      ? null
+      : createElement(
+          'div',
+          { style: SEGMENT_STYLE, role: 'group', 'aria-label': t('mode.label') },
+          (['preview', 'code'] as const).map(option =>
+            createElement(
+              'button',
+              {
+                key: option,
+                type: 'button',
+                style: mode === option ? SEGMENT_ON_STYLE : SEGMENT_OFF_STYLE,
+                'aria-pressed': mode === option,
+                onClick: () => switchMode(option),
+              },
+              t(option === 'preview' ? 'mode.preview' : 'mode.code'),
+            ),
+          ),
+        )
+
   const bar = createElement(
     'div',
     { style: BAR_STYLE },
@@ -253,6 +360,7 @@ export function CanvasReportTab(props: CanvasReportTabProps): ReactNode {
       },
     }),
     createElement('button', { type: 'button', style: BUTTON_STYLE, onClick: submit }, t('action.open')),
+    toggle,
   )
 
   let body: ReactNode
@@ -262,6 +370,9 @@ export function CanvasReportTab(props: CanvasReportTabProps): ReactNode {
     body = createElement(Notice, { title: t('state.loading') })
   } else if (status === 'error') {
     body = createElement(Notice, { title: t('state.error'), detail: error })
+  } else if (mode === 'code' && source !== undefined) {
+    // Raw source, exactly as `fs.read` returned it — no re-encoding.
+    body = createElement('pre', { style: CODE_STYLE }, source)
   } else if (parsed !== undefined && !parsed.ok) {
     // A parse failure is a per-file result, not a wire failure: say which.
     body = createElement(Notice, {

@@ -112,6 +112,8 @@ async function flush(): Promise<void> {
 interface MountOptions {
   path?: string
   visible?: boolean
+  /** The tab's persisted plugin-owned blob (`SidebarTab.meta`). */
+  meta?: unknown
 }
 
 /** Mount the tab and let every pending promise settle. */
@@ -121,13 +123,27 @@ async function mount(options: MountOptions = {}): Promise<void> {
       createElement(CanvasReportTab, {
         t: (key: string) => key,
         scope: SCOPE,
-        tab: options.path === undefined ? { id: 'tab-1' } : { id: 'tab-1', path: options.path },
+        tab: {
+          id: 'tab-1',
+          ...(options.path === undefined ? {} : { path: options.path }),
+          ...(options.meta === undefined ? {} : { meta: options.meta }),
+        },
         service: {
           updateTab: (tabId: string, patch: Record<string, unknown>) => updates.push({ tabId, patch }),
         },
         visible: options.visible ?? true,
       }),
     )
+  })
+  await flush()
+}
+
+/** Click the button whose label matches, and settle. */
+async function clickLabel(label: string): Promise<void> {
+  const target = [...container.querySelectorAll('button')].find(b => b.textContent === label)
+  if (target === undefined) throw new Error(`no button labelled "${label}"`)
+  await act(async () => {
+    target.dispatchEvent(new MouseEvent('click', { bubbles: true }))
   })
   await flush()
 }
@@ -312,5 +328,61 @@ describe('visible contract — an inactive tab must not hit the wire', () => {
     await flush()
     expect(calls.map(c => c.method)).toEqual(['fs.read'])
     expect(container.querySelector('.dsh-canvas-doc')).not.toBeNull()
+  })
+})
+
+describe('code/preview toggle', () => {
+  it('is not offered before a file is loaded', async () => {
+    wire(READ_OK)
+    await mount()
+    expect(container.textContent).not.toContain('mode.preview')
+  })
+
+  it('appears once loaded and starts in preview', async () => {
+    wire(READ_OK)
+    await mount({ path: 'try/report.canvas.tsx' })
+    expect(container.textContent).toContain('mode.preview')
+    expect(container.textContent).toContain('mode.code')
+    // Preview is the default: the rendered document, not the source.
+    expect(container.querySelector('.dsh-canvas-doc')).not.toBeNull()
+    expect(container.querySelector('pre')).toBeNull()
+  })
+
+  it('switches to the raw source and back', async () => {
+    wire(READ_OK)
+    await mount({ path: 'try/report.canvas.tsx' })
+
+    await clickLabel('mode.code')
+    const pre = container.querySelector('pre')
+    expect(pre).not.toBeNull()
+    // Verbatim source — the canvas markers are visible as text.
+    expect(pre?.textContent).toContain("canvasImage('./shot.png')")
+    expect(container.querySelector('.dsh-canvas-doc')).toBeNull()
+
+    await clickLabel('mode.preview')
+    expect(container.querySelector('.dsh-canvas-doc')).not.toBeNull()
+    expect(container.querySelector('pre')).toBeNull()
+  })
+
+  it('persists the choice on the tab so a reload keeps it', async () => {
+    wire(READ_OK)
+    await mount({ path: 'try/report.canvas.tsx' })
+    await clickLabel('mode.code')
+    expect(updates).toContainEqual({ tabId: 'tab-1', patch: { meta: { mode: 'code' } } })
+  })
+
+  it('restores a persisted code mode without a click', async () => {
+    wire(READ_OK)
+    await mount({ path: 'try/report.canvas.tsx', meta: { mode: 'code' } })
+    expect(container.querySelector('pre')).not.toBeNull()
+    expect(container.querySelector('.dsh-canvas-doc')).toBeNull()
+  })
+
+  it('shows the source even when the file does not parse', async () => {
+    // The code view must not depend on the parser: seeing the raw file is the
+    // whole point of the escape hatch when a report will not render.
+    wire({ 'fs.read': () => ok({ kind: 'text', content: 'export const nope = 1\n', truncated: false }) })
+    await mount({ path: 'broken.canvas.tsx', meta: { mode: 'code' } })
+    expect(container.querySelector('pre')?.textContent).toContain('export const nope = 1')
   })
 })
