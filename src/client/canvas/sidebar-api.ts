@@ -97,13 +97,14 @@ function scoped(scope: Scope, extra: Record<string, unknown>): Record<string, un
   }
 }
 
-/** Recursive file-name search from the session cwd; matches are cwd-relative. */
-export async function fsSearch(scope: Scope, query: string, signal?: AbortSignal): Promise<string[]> {
-  const value = await call<{ matches?: string[] }>('fs.search', scoped(scope, { query }), signal)
-  return value.matches ?? []
-}
-
-/** Read one text file through the host's workspace-fenced reader. */
+/**
+ * Read one text file through the host's reader.
+ *
+ * `path` may be workspace-relative or absolute; the host resolves both. Note
+ * that the host route fences RELATIVE traversal but not absolute paths (a probe
+ * of the deployed host read `C:/Windows/win.ini` through it), so callers own
+ * that check — see `isInsideWorkspace` in `CanvasReportTab`.
+ */
 export async function fsReadText(
   scope: Scope,
   path: string,

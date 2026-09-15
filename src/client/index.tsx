@@ -94,7 +94,14 @@ export function apply(ctx: Context): void {
         order: 60, // built-ins: editor 10, git 20, subagent 30, sidechat 35, terminal 40, browser 50
         single: true, // ≡ dedupeKey: () => id — reopen focuses the existing tab
         component: props =>
-          createElement(CanvasReportTab, { t, scope: props.scope, visible: props.visible }),
+          createElement(CanvasReportTab, {
+            t,
+            scope: props.scope,
+            tab: props.tab,
+            // `bar`, not `props.store` — updateTab lives on the service.
+            service: bar,
+            visible: props.visible,
+          }),
       }),
     'dsh-canvas-tsx-sidebar: tab',
   )

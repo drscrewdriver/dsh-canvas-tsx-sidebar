@@ -1,23 +1,21 @@
 /**
  * Sidebar tab behaviour.
  *
- * These drive the real component against a faked `/sidebar/api` wire, so they
- * pin the four states AND the two integration contracts that are easy to break
- * silently:
+ * The tab renders ONE file that the user names. These tests pin the states, the
+ * two integration contracts that break silently (the `visible` pause and the
+ * image seam), and — most importantly — the fence: an absolute path outside the
+ * session workspace must be refused by US, because the host route does not
+ * refuse it.
  *
- * - the tab must not touch the wire while it is not the visible one;
- * - a screenshot must resolve to the sidebar's media route, never to a base64
- *   blob and never to a raw filesystem path.
- *
- * The canvas source below deliberately omits semicolons, so this file also
- * exercises the ASI fix end-to-end (a semicolon-less file used to lose every
+ * The canvas fixture is deliberately semicolon-less, so this file also
+ * exercises the ASI fix end-to-end (a semicolon-less source used to lose every
  * `canvasImage()` binding).
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { Root } from 'react-dom/client'
-import { CanvasReportTab } from '../src/client/CanvasReportTab'
+import { CanvasReportTab, isInsideWorkspace } from '../src/client/CanvasReportTab'
 
 /** A semicolon-less canvas file with one screenshot. */
 const CANVAS_SOURCE = `import { H1, Stack, Text, canvasImage } from 'qoder/canvas'
@@ -54,7 +52,7 @@ function fail(code: string, message: string, status = 200): Response {
   return reply({ ok: false, error: { code, message } }, status)
 }
 
-/** Recorded requests, for asserting on payloads. */
+/** One recorded request. */
 interface Call {
   method: string
   payload: Record<string, unknown>
@@ -80,16 +78,21 @@ function wire(routes: Record<string, () => Response>): Call[] {
   return calls
 }
 
-const SCOPE = { sessionId: 'sess-1', cwd: '/ws' }
+/** A workspace-relative read that succeeds. */
+const READ_OK = { 'fs.read': () => ok({ kind: 'text', content: CANVAS_SOURCE, truncated: false }) }
+
+const SCOPE = { sessionId: 'sess-1', cwd: 'E:\\ws' }
 
 let container: HTMLDivElement
 let root: Root
+let updates: Array<{ tabId: string; patch: Record<string, unknown> }>
 
 beforeEach(() => {
   ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
   container = document.createElement('div')
   document.body.appendChild(container)
   root = createRoot(container)
+  updates = []
 })
 
 afterEach(() => {
@@ -98,161 +101,214 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 
-/** Mount the tab and let every pending promise settle. */
-async function mount(visible = true): Promise<void> {
-  await act(async () => {
-    root.render(createElement(CanvasReportTab, { t: (key: string) => key, scope: SCOPE, visible }))
-  })
-  // Two turns: the search resolves, then the read it triggers resolves.
-  await act(async () => {
-    await new Promise(resolve => setTimeout(resolve, 0))
-  })
+/** Settle the promise chain a fetch kicks off. */
+async function flush(): Promise<void> {
   await act(async () => {
     await new Promise(resolve => setTimeout(resolve, 0))
   })
 }
 
-describe('empty — discovery found nothing', () => {
-  it('explains the miss and offers a reload', async () => {
-    wire({ 'fs.search': () => ok({ matches: [], truncated: false }) })
+interface MountOptions {
+  path?: string
+  visible?: boolean
+}
+
+/** Mount the tab and let every pending promise settle. */
+async function mount(options: MountOptions = {}): Promise<void> {
+  await act(async () => {
+    root.render(
+      createElement(CanvasReportTab, {
+        t: (key: string) => key,
+        scope: SCOPE,
+        tab: options.path === undefined ? { id: 'tab-1' } : { id: 'tab-1', path: options.path },
+        service: {
+          updateTab: (tabId: string, patch: Record<string, unknown>) => updates.push({ tabId, patch }),
+        },
+        visible: options.visible ?? true,
+      }),
+    )
+  })
+  await flush()
+}
+
+/** Type into the path box the way a browser does, then press the button. */
+async function typePath(value: string): Promise<void> {
+  const input = container.querySelector('input')
+  if (input === null) throw new Error('no path input rendered')
+  await act(async () => {
+    const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set
+    setter?.call(input, value)
+    input.dispatchEvent(new Event('input', { bubbles: true }))
+  })
+  await act(async () => {
+    container.querySelector('button')?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+  })
+  await flush()
+}
+
+describe('no path yet — the tab waits for one', () => {
+  it('prompts instead of scanning', async () => {
+    const calls = wire(READ_OK)
     await mount()
-    expect(container.textContent).toContain('state.empty')
-    expect(container.textContent).toContain('state.emptyHint')
-    expect(container.querySelector('button')?.textContent).toBe('action.reload')
+    expect(container.textContent).toContain('state.noPath')
+    expect(container.textContent).toContain('state.noPathHint')
+    // The point of this design: opening the tab touches nothing.
+    expect(calls).toEqual([])
   })
 
-  it('ignores matches that are not .canvas.tsx', async () => {
-    wire({ 'fs.search': () => ok({ matches: ['a.canvas.tsx.bak', 'b.tsx'] }) })
+  it('renders a path box', async () => {
+    wire(READ_OK)
     await mount()
-    expect(container.textContent).toContain('state.empty')
+    expect(container.querySelector('input')).not.toBeNull()
   })
 })
 
-describe('ready — a parsed document', () => {
-  const routes = {
-    'fs.search': () => ok({ matches: ['try/report.canvas.tsx'], truncated: false }),
-    'fs.read': () => ok({ kind: 'text', content: CANVAS_SOURCE, truncated: false }),
-  }
-
+describe('a named path renders', () => {
   it('renders the document, not a placeholder', async () => {
-    wire(routes)
-    await mount()
+    wire(READ_OK)
+    await mount({ path: 'try/report.canvas.tsx' })
     expect(container.querySelector('.dsh-canvas-doc')).not.toBeNull()
     expect(container.querySelector('.report-shell')).not.toBeNull()
     expect(container.querySelector('h1.h1')?.textContent).toBe('Hello Canvas')
     expect(container.textContent).toContain('body text')
   })
 
-  it('reads the file through the workspace-fenced route, scoped to the session', async () => {
-    const calls = wire(routes)
-    await mount()
-    expect(calls.map(c => c.method)).toEqual(['fs.search', 'fs.read'])
-    expect(calls[0]?.payload).toMatchObject({ sessionId: 'sess-1', cwd: '/ws', query: '.canvas.tsx' })
-    expect(calls[1]?.payload).toMatchObject({ sessionId: 'sess-1', path: 'try/report.canvas.tsx' })
+  it('reads only that file, scoped to the session', async () => {
+    const calls = wire(READ_OK)
+    await mount({ path: 'try/report.canvas.tsx' })
+    expect(calls.map(c => c.method)).toEqual(['fs.read'])
+    expect(calls[0]?.payload).toMatchObject({
+      sessionId: 'sess-1',
+      cwd: 'E:\\ws',
+      path: 'try/report.canvas.tsx',
+    })
   })
 
   it('resolves the screenshot to the media route, not base64 and not a raw path', async () => {
-    wire(routes)
-    await mount()
+    wire(READ_OK)
+    await mount({ path: 'try/report.canvas.tsx' })
     const img = container.querySelector('img')
     const src = img?.getAttribute('src') ?? ''
     expect(src.startsWith('/sidebar/file?')).toBe(true)
-    // `try/report.canvas.tsx` + `./shot.png` -> `try/shot.png`
     expect(decodeURIComponent(src)).toContain('path=try/shot.png')
     expect(src).not.toContain('base64')
-    expect(img?.getAttribute('alt')).toBe('screenshot')
   })
 
   it('injects the document stylesheet exactly once', async () => {
-    wire(routes)
-    await mount()
+    wire(READ_OK)
+    await mount({ path: 'try/report.canvas.tsx' })
     expect(document.querySelectorAll('#dsh-canvas-tsx-sidebar\\/styles')).toHaveLength(1)
   })
 })
 
-describe('error — the wire refused us', () => {
+describe('typing a path opens it and sticks it to the tab', () => {
+  it('loads the typed file', async () => {
+    const calls = wire(READ_OK)
+    await mount()
+    await typePath('try/report.canvas.tsx')
+    expect(calls.map(c => c.method)).toEqual(['fs.read'])
+    expect(container.querySelector('.dsh-canvas-doc')).not.toBeNull()
+  })
+
+  it('persists the path so the tab reopens on the same file', async () => {
+    wire(READ_OK)
+    await mount()
+    await typePath('try/report.canvas.tsx')
+    expect(updates).toEqual([
+      { tabId: 'tab-1', patch: { path: 'try/report.canvas.tsx', title: 'report.canvas.tsx' } },
+    ])
+  })
+})
+
+describe('fence — we refuse what the host would have allowed', () => {
+  it('accepts a relative path', () => {
+    expect(isInsideWorkspace('E:\\ws', 'try/a.canvas.tsx')).toBe(true)
+  })
+
+  it('accepts an absolute path inside the workspace, in any spelling', () => {
+    expect(isInsideWorkspace('E:\\ws', 'E:\\ws\\try\\a.canvas.tsx')).toBe(true)
+    expect(isInsideWorkspace('E:\\ws', 'e:/ws/try/a.canvas.tsx')).toBe(true)
+  })
+
+  it('refuses an absolute path outside the workspace', () => {
+    // The deployed host route answers this one with file contents.
+    expect(isInsideWorkspace('E:\\ws', 'C:/Windows/win.ini')).toBe(false)
+    expect(isInsideWorkspace('E:\\ws', 'E:\\other\\a.canvas.tsx')).toBe(false)
+  })
+
+  it('refuses an absolute path when the cwd is unknown', () => {
+    expect(isInsideWorkspace(undefined, 'E:\\ws\\a.canvas.tsx')).toBe(false)
+  })
+
+  it('never reads anything when the typed path is outside the workspace', async () => {
+    const calls = wire(READ_OK)
+    await mount()
+    await typePath('C:/Windows/win.ini')
+    expect(calls).toEqual([])
+    expect(container.textContent).toContain('error.outsideWorkspace')
+  })
+
+  it('does not build a media URL for an absolute image reference', async () => {
+    wire({
+      'fs.read': () =>
+        ok({
+          kind: 'text',
+          content: `import { Stack, canvasImage } from 'qoder/canvas'\nconst s = canvasImage('C:/secrets/x.png')\nexport default function R() {\n  return (\n    <Stack>\n      <img src={s} alt="s" />\n    </Stack>\n  )\n}\n`,
+          truncated: false,
+        }),
+    })
+    await mount({ path: 'try/a.canvas.tsx' })
+    expect(container.querySelector('img')).toBeNull()
+    expect(container.textContent).toContain('未找到')
+  })
+})
+
+describe('error states', () => {
   it('says so when better-sidebar is not serving the fs API', async () => {
     wire({})
-    await mount()
+    await mount({ path: 'a.canvas.tsx' })
     expect(container.textContent).toContain('state.error')
     expect(container.textContent).toContain('better-sidebar is not serving the fs API.')
   })
 
-  it('translates the workspace fence into plain language', async () => {
-    wire({
-      'fs.search': () => ok({ matches: ['x.canvas.tsx'], truncated: false }),
-      'fs.read': () => fail('forbidden', 'path "x.canvas.tsx" is outside workspace'),
-    })
-    await mount()
+  it('translates the host fence into plain language', async () => {
+    wire({ 'fs.read': () => fail('forbidden', 'path "x" is outside workspace') })
+    await mount({ path: 'x.canvas.tsx' })
     expect(container.textContent).toContain('outside the session workspace')
   })
 
   it('reports a parse failure as a per-file result', async () => {
-    wire({
-      'fs.search': () => ok({ matches: ['broken.canvas.tsx'], truncated: false }),
-      'fs.read': () => ok({ kind: 'text', content: 'export const nope = 1\n', truncated: false }),
-    })
-    await mount()
+    wire({ 'fs.read': () => ok({ kind: 'text', content: 'export const nope = 1\n', truncated: false }) })
+    await mount({ path: 'broken.canvas.tsx' })
     expect(container.textContent).toContain('state.parseFailed')
     expect(container.textContent).toContain('no-default-export')
   })
 
   it('refuses a binary file rather than rendering garbage', async () => {
-    wire({
-      'fs.search': () => ok({ matches: ['img.canvas.tsx'], truncated: false }),
-      'fs.read': () => ok({ kind: 'binary', size: 10, head: '', truncated: false }),
-    })
-    await mount()
+    wire({ 'fs.read': () => ok({ kind: 'binary', size: 10, head: '', truncated: false }) })
+    await mount({ path: 'img.canvas.tsx' })
     expect(container.textContent).toContain('not a text file')
   })
 })
 
 describe('visible contract — an inactive tab must not hit the wire', () => {
-  it('fetches nothing while hidden', async () => {
-    const calls = wire({ 'fs.search': () => ok({ matches: [], truncated: false }) })
-    await mount(false)
-    expect(calls).toEqual([])
-  })
-
-  it('fetches nothing when hidden, then loads on becoming visible', async () => {
-    const calls = wire({
-      'fs.search': () => ok({ matches: ['a.canvas.tsx'], truncated: false }),
-      'fs.read': () => ok({ kind: 'text', content: CANVAS_SOURCE, truncated: false }),
-    })
-    await mount(false)
+  it('fetches nothing while hidden, then loads on becoming visible', async () => {
+    const calls = wire(READ_OK)
+    await mount({ path: 'try/report.canvas.tsx', visible: false })
     expect(calls).toEqual([])
 
     await act(async () => {
-      root.render(createElement(CanvasReportTab, { t: (key: string) => key, scope: SCOPE, visible: true }))
+      root.render(
+        createElement(CanvasReportTab, {
+          t: (key: string) => key,
+          scope: SCOPE,
+          tab: { id: 'tab-1', path: 'try/report.canvas.tsx' },
+          visible: true,
+        }),
+      )
     })
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
-    })
-    await act(async () => {
-      await new Promise(resolve => setTimeout(resolve, 0))
-    })
-    expect(calls.map(c => c.method)).toEqual(['fs.search', 'fs.read'])
+    await flush()
+    expect(calls.map(c => c.method)).toEqual(['fs.read'])
     expect(container.querySelector('.dsh-canvas-doc')).not.toBeNull()
-  })
-})
-
-describe('picker — shown only when there is a choice', () => {
-  it('stays out of the way for a single file', async () => {
-    wire({
-      'fs.search': () => ok({ matches: ['only.canvas.tsx'], truncated: false }),
-      'fs.read': () => ok({ kind: 'text', content: CANVAS_SOURCE, truncated: false }),
-    })
-    await mount()
-    expect(container.querySelector('select')).toBeNull()
-  })
-
-  it('lists every candidate in name order when there are several', async () => {
-    wire({
-      'fs.search': () => ok({ matches: ['z.canvas.tsx', 'a.canvas.tsx'], truncated: false }),
-      'fs.read': () => ok({ kind: 'text', content: CANVAS_SOURCE, truncated: false }),
-    })
-    await mount()
-    const options = [...container.querySelectorAll('option')].map(o => o.textContent)
-    expect(options).toEqual(['a.canvas.tsx', 'z.canvas.tsx'])
   })
 })
