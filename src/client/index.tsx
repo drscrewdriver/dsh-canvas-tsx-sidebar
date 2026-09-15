@@ -1,27 +1,33 @@
 /**
- * Browser half: registers the Canvas report tab with better-sidebar.
+ * Browser half: registers a Canvas report viewer and tab with better-sidebar.
+ *
+ * We register two entry points:
+ *
+ * 1. **File viewer** (`exts: ['tsx']`, priority 50): claims every `.tsx` the
+ *    user opens. For `.canvas.tsx` it renders a live document with a
+ *    code/preview toggle; for other `.tsx` it shows a monospace source view
+ *    (a faithful fallback — the source is always available). The user can
+ *    disable the viewer in the Side card settings, which restores the
+ *    built-in code viewer.
+ *
+ * 2. **Tab** (`order: 60`, `single: true`): a manual-preview surface with a
+ *    path input, useful for inspecting a canvas without opening it in the
+ *    editor.
  *
  * Registration contract (docs/external-plugin-guide.md §3/§4):
  * - `inject` declares the services we need; Cordis activates us only once
  *   `betterSidebar` is published, so registration order is irrelevant.
  * - Every `register*` call rides `ctx.effect(fn, label)` so the returned
- *   disposer is revoked on fiber teardown (HMR / disable). Without it the
- *   registration survives and the next activation throws `already registered`.
+ *   disposer is revoked on fiber teardown (HMR / disable).
  * - We are a SOFT dependency: when better-sidebar is not installed the
  *   registration is skipped silently and the rest of the plugin is inert.
- *
- * Why a tab and not a file viewer — see spec.md §2.3. In short: `extOf()`
- * only takes the last dot segment (so `exts: ['canvas.tsx']` can never match),
- * the only matching `exts: ['tsx']` would swallow every TSX in the workspace
- * and outrank the built-in `code` viewer, `detect` never fires for text
- * files, there is no delegation API, and `dsh-code-nav` already claims `tsx`
- * at priority 10.
  */
 import { createElement } from 'react'
 import type {} from 'dsh-better-sidebar/client/service'
 import type { BetterSidebarService } from 'dsh-better-sidebar/client/service'
 import type { Context } from '@deepseek-ai/cordis'
 import { CanvasReportTab } from './CanvasReportTab'
+import { CanvasFileViewer, VIEWER_ID } from './canvas/canvas-viewer'
 import { CanvasIcon } from './CanvasIcon'
 import { dictionaries, NS } from './locales'
 
@@ -104,5 +110,27 @@ export function apply(ctx: Context): void {
           }),
       }),
     'dsh-canvas-tsx-sidebar: tab',
+  )
+
+  // File viewer: claims every .tsx; a canvas file renders as a live document,
+  // anything else shows the raw source. The Side card settings page gets an
+  // enable/disable switch so the user can restore the built-in code viewer.
+  ctx.effect(
+    () =>
+      bar.registerFileViewer({
+        id: VIEWER_ID,
+        title: () => t('viewer.title'),
+        icon: (size: number) => CanvasIcon(size),
+        exts: ['tsx'],
+        priority: 50, // above default 0; built-in `code` viewer sits at -100
+        fetchStrategy: 'fsRead',
+        component: props =>
+          createElement(CanvasFileViewer, {
+            scope: props.scope,
+            path: props.path,
+            title: props.title,
+          }),
+      }),
+    'dsh-canvas-tsx-sidebar: viewer',
   )
 }

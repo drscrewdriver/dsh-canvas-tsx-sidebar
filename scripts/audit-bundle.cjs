@@ -30,7 +30,6 @@ const forbidden = [
   ['sucrase in bundle', /sucrase/],
   ['code execution: eval(', /\beval\s*\(/],
   ['code execution: new Function(', /new\s+Function\s*\(/],
-  ['file viewer registration', /registerFileViewer/],
   ['file icon registration', /registerFileIcon/],
 ]
 

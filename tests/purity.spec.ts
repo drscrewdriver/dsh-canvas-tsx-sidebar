@@ -56,10 +56,10 @@ describe('src purity — imports', () => {
 })
 
 describe('src purity — registration surface', () => {
-  it('registers a tab only: no registerFileViewer / registerFileIcon', () => {
+  it('registers a viewer and a tab but never a file icon', () => {
     const offenders: string[] = []
     for (const file of files) {
-      for (const banned of ['registerFileViewer', 'registerFileIcon']) {
+      for (const banned of ['registerFileIcon']) {
         if (file.text.includes(banned)) offenders.push(`${file.rel}: ${banned}`)
       }
     }

@@ -28,6 +28,7 @@ export const dictionaries: LocaleBundle = {
     'state.error': '读取失败',
     'state.parseFailed': '解析失败',
     'error.outsideWorkspace': '该绝对路径不在当前会话工作区内，已拒绝读取。请改用相对工作区的路径。',
+    'viewer.title': 'Canvas 报告',
   },
   en: {
     'tab.title': 'Canvas Report',
@@ -44,5 +45,6 @@ export const dictionaries: LocaleBundle = {
     'state.parseFailed': 'Parse failed',
     'error.outsideWorkspace':
       'That absolute path is outside the session workspace, so it was refused. Use a workspace-relative path.',
+    'viewer.title': 'Canvas Report',
   },
 }
