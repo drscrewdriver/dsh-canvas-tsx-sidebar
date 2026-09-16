@@ -10,10 +10,12 @@
  * parser's output.
  */
 import { describe, expect, it } from 'vitest'
-import { readFileSync } from 'node:fs'
+import { readFileSync, readdirSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { extractCanvas } from '../src/client/canvas/extract'
+import { CanvasDocument } from '../src/client/canvas/render'
 import type { CanvasNode } from '../src/client/canvas/ir'
 
 const here = dirname(fileURLToPath(import.meta.url))
@@ -165,5 +167,35 @@ describe('boundary — genuinely dynamic forms stay unresolved', () => {
     ]) {
       expect(() => extractCanvas(read(name))).not.toThrow()
     }
+  })
+})
+
+describe('a native HTML tag is never reported as an unknown component', () => {
+  /**
+   * The parser keeps lowercase tags verbatim (`normaliseTag`), so the renderer
+   * must pass them through. When it did not, every report that wrapped its
+   * header in `<header>` — which real corpus files do — rendered a dashed
+   * "⚠ header" box in the sidebar. That is a FALSE fidelity report: the tag was
+   * fine, the renderer was wrong.
+   *
+   * This renders the whole fixture corpus and asserts the notice never fires
+   * for a lowercase tag. It is allowed to fire for a capitalised component the
+   * renderer genuinely does not map (that is the notice doing its job).
+   */
+  const all = readdirSync(resolve(here, 'fixtures'))
+    .filter(f => f.endsWith('.canvas.tsx') && !f.startsWith('unterminated'))
+    .sort()
+
+  it('the fixture set is non-trivial', () => {
+    expect(all.length).toBeGreaterThan(6)
+  })
+
+  it.each(all)('%s', name => {
+    const result = extractCanvas(read(name))
+    if (!result.ok) return // parsed-gap fixtures are covered elsewhere
+    const markup = renderToStaticMarkup(CanvasDocument({ root: result.root }))
+    const reported = [...markup.matchAll(/data-tag="([^"]*)"/g)].map(m => m[1] as string)
+    const lowercase = reported.filter(t => t !== '' && t[0] === t[0]?.toLowerCase() && t[0] !== t[0]?.toUpperCase())
+    expect(lowercase, `${name} warned about native tag(s): ${lowercase.join(', ')}`).toEqual([])
   })
 })

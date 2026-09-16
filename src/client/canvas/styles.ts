@@ -92,6 +92,10 @@ export const CANVAS_CSS = `
 .dsh-canvas-doc .h3 { font-size: 1.1rem; font-weight: 600; color: #111827; margin: 16px 0 4px 0; }
 .dsh-canvas-doc .text { font-size: 0.875rem; color: #374151; }
 .dsh-canvas-doc .text-secondary { color: #6b7280; }
+/* The SDK's tone union has four emphasis steps, not two. The "primary" step is
+   the document foreground itself, so it is deliberately unpainted. */
+.dsh-canvas-doc .text-tertiary { color: #9ca3af; }
+.dsh-canvas-doc .text-quaternary { color: #d1d5db; }
 .dsh-canvas-doc .text-small, .dsh-canvas-doc .text-sm { font-size: 0.75rem; }
 .dsh-canvas-doc .p { font-size: 0.875rem; color: #374151; line-height: 1.6; margin-bottom: 12px; }
 
@@ -115,14 +119,17 @@ export const CANVAS_CSS = `
 .dsh-canvas-doc .table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
 .dsh-canvas-doc .th { padding: 8px 12px; text-align: left; font-weight: 600; border-bottom: 2px solid #e5e7eb; background: #f9fafb; }
 .dsh-canvas-doc .td { padding: 8px 12px; border-bottom: 1px solid #f3f4f6; }
-.dsh-canvas-doc .tr-success { background: #f0fdf4; }
-.dsh-canvas-doc .tr-success .td { border-bottom-color: #bbf7d0; }
-.dsh-canvas-doc .tr-warning { background: #fffbeb; }
-.dsh-canvas-doc .tr-warning .td { border-bottom-color: #fde68a; }
-.dsh-canvas-doc .tr-danger { background: #fef2f2; }
-.dsh-canvas-doc .tr-danger .td { border-bottom-color: #fecaca; }
-.dsh-canvas-doc .tr-accent { background: #eff6ff; }
+.dsh-canvas-doc .tr-success, .dsh-canvas-doc .tr-positive { background: #f0fdf4; }
+.dsh-canvas-doc .tr-success .td, .dsh-canvas-doc .tr-positive .td { border-bottom-color: #bbf7d0; }
+.dsh-canvas-doc .tr-warning, .dsh-canvas-doc .tr-caution { background: #fffbeb; }
+.dsh-canvas-doc .tr-warning .td, .dsh-canvas-doc .tr-caution .td { border-bottom-color: #fde68a; }
+.dsh-canvas-doc .tr-danger, .dsh-canvas-doc .tr-critical { background: #fef2f2; }
+.dsh-canvas-doc .tr-danger .td, .dsh-canvas-doc .tr-critical .td { border-bottom-color: #fecaca; }
+.dsh-canvas-doc .tr-accent, .dsh-canvas-doc .tr-info { background: #eff6ff; }
+.dsh-canvas-doc .tr-info .td { border-bottom-color: #bfdbfe; }
 .dsh-canvas-doc .tr-muted { background: #f9fafb; }
+.dsh-canvas-doc .tr-neutral { background: #f3f4f6; }
+.dsh-canvas-doc .tr-neutral .td { border-bottom-color: #e5e7eb; }
 
 /* ── card ─────────────────────────────────────────────────────────────── */
 .dsh-canvas-doc .card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 16px 20px; margin-bottom: 16px; background: #fff; }
@@ -132,9 +139,9 @@ export const CANVAS_CSS = `
 /* ── callout + banner ─────────────────────────────────────────────────── */
 .dsh-canvas-doc .callout, .dsh-canvas-doc .banner { border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 0.875rem; }
 .dsh-canvas-doc .callout-info { border-left: 4px solid #3b82f6; background: #eff6ff; }
-.dsh-canvas-doc .callout-success { border-left: 4px solid #22c55e; background: #f0fdf4; }
-.dsh-canvas-doc .callout-warning { border-left: 4px solid #f59e0b; background: #fffbeb; }
-.dsh-canvas-doc .callout-danger { border-left: 4px solid #ef4444; background: #fef2f2; }
+.dsh-canvas-doc .callout-success, .dsh-canvas-doc .callout-positive { border-left: 4px solid #22c55e; background: #f0fdf4; }
+.dsh-canvas-doc .callout-warning, .dsh-canvas-doc .callout-caution { border-left: 4px solid #f59e0b; background: #fffbeb; }
+.dsh-canvas-doc .callout-danger, .dsh-canvas-doc .callout-critical { border-left: 4px solid #ef4444; background: #fef2f2; }
 .dsh-canvas-doc .callout-neutral { border-left: 4px solid #6b7280; background: #f9fafb; }
 .dsh-canvas-doc .callout-title { font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 6px; }
 .dsh-canvas-doc .callout-icon { font-size: 1rem; line-height: 1; }
@@ -142,16 +149,22 @@ export const CANVAS_CSS = `
 
 /* ── pill / tag / badge / code ────────────────────────────────────────── */
 .dsh-canvas-doc .pill { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 500; margin-right: 4px; }
-.dsh-canvas-doc .pill-green, .dsh-canvas-doc .pill-success { background: #dcfce7; color: #166534; }
-.dsh-canvas-doc .pill-red, .dsh-canvas-doc .pill-danger { background: #fee2e2; color: #991b1b; }
+/* The "added" / "deleted" values are the diff semantics of the shared Tone
+   union; they reuse the success/danger palette so a diff pill and a status
+   pill agree. The "primary" value gets its own indigo so it cannot be
+   confused with "info". */
+.dsh-canvas-doc .pill-primary { background: #e0e7ff; color: #3730a3; }
+.dsh-canvas-doc .pill-green, .dsh-canvas-doc .pill-success, .dsh-canvas-doc .pill-added { background: #dcfce7; color: #166534; }
+.dsh-canvas-doc .pill-red, .dsh-canvas-doc .pill-danger, .dsh-canvas-doc .pill-deleted { background: #fee2e2; color: #991b1b; }
 .dsh-canvas-doc .pill-yellow, .dsh-canvas-doc .pill-warning { background: #fef9c3; color: #854d0e; }
 .dsh-canvas-doc .pill-blue, .dsh-canvas-doc .pill-info { background: #dbeafe; color: #1e40af; }
 .dsh-canvas-doc .pill-gray, .dsh-canvas-doc .pill-neutral { background: #f3f4f6; color: #374151; }
 .dsh-canvas-doc .tag { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; }
-.dsh-canvas-doc .tag-success { background: #dcfce7; color: #166534; }
-.dsh-canvas-doc .tag-danger { background: #fee2e2; color: #991b1b; }
+.dsh-canvas-doc .tag-success, .dsh-canvas-doc .tag-added { background: #dcfce7; color: #166534; }
+.dsh-canvas-doc .tag-danger, .dsh-canvas-doc .tag-deleted { background: #fee2e2; color: #991b1b; }
 .dsh-canvas-doc .tag-warning { background: #fef9c3; color: #854d0e; }
 .dsh-canvas-doc .tag-info { background: #dbeafe; color: #1e40af; }
+.dsh-canvas-doc .tag-primary { background: #e0e7ff; color: #3730a3; }
 .dsh-canvas-doc .tag-neutral { background: #f3f4f6; color: #374151; }
 .dsh-canvas-doc .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 500; background: #f3f4f6; color: #374151; }
 .dsh-canvas-doc .code { font-family: 'SF Mono', Monaco, Consolas, monospace; font-size: 0.8125rem; background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }

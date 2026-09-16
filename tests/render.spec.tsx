@@ -151,6 +151,67 @@ describe('Table — both prop shapes render', () => {
     expect(out).toContain('<tr class="tr tr-success">')
     expect(out).toContain('<tr class="tr tr-danger">')
   })
+
+  it('columns + rows — the SDK names the row array `rows`, not `data`', () => {
+    // `ModernTableProps` is `{ columns, rows, rowTone }` (core-primitives.d.ts:319).
+    // `columns + data` above is this renderer's own older spelling. Both are
+    // legal in the SDK, so both must render; a `rows` file used to come out
+    // completely empty.
+    const out = html(
+      canvas(`<Table columns={[{ key: 'v', title: 'V' }]} rows={[{ v: 'pass' }]} />`),
+    )
+    expect(out).toContain('<th class="th">V</th>')
+    expect(out).toContain('<td class="td">pass</td>')
+  })
+
+  it('a TableColumn is labelled by `title` before falling back to `key`', () => {
+    // SDK `TableColumn` is `{ key, title?, header? }` — `key` is the field name,
+    // `title` is what a human reads. Preferring `key` printed the raw field name.
+    const out = html(
+      canvas(`<Table columns={[{ key: 'scan_methods', title: '扫描方法' }]} rows={[{ scan_methods: '32' }]} />`),
+    )
+    expect(out).toContain('<th class="th">扫描方法</th>')
+    expect(out).not.toContain('<th class="th">scan_methods</th>')
+    // The cell still reads the field named by `key`.
+    expect(out).toContain('<td class="td">32</td>')
+  })
+
+  it('legacy headers + rows is not swallowed by the modern branch', () => {
+    // `rows` carries positional arrays in the legacy shape. They must not be
+    // mistaken for records just because the modern branch also reads `rows`.
+    const out = html(canvas(`<Table headers={['a', 'b']} rows={[['1', '2']]} />`))
+    expect(out).toContain('<th class="th">a</th>')
+    expect(out).toContain('<td class="td">1</td>')
+    expect(out).toContain('<td class="td">2</td>')
+  })
+})
+
+describe('MetricsGrid — the SDK names its column prop `columns`', () => {
+  it('columns={4} raises the track floor to 240px', () => {
+    const out = html(canvas(`<MetricsGrid columns={4} items={[{ label: 'a', value: '1' }]} />`))
+    expect(out).toContain('minmax(240px, 1fr)')
+  })
+
+  it('three or fewer columns keeps the 200px floor', () => {
+    const out = html(canvas(`<MetricsGrid columns={3} items={[{ label: 'a', value: '1' }]} />`))
+    expect(out).toContain('minmax(200px, 1fr)')
+  })
+
+  it('the older `cols` spelling still works', () => {
+    const out = html(canvas(`<MetricsGrid cols={4} items={[{ label: 'a', value: '1' }]} />`))
+    expect(out).toContain('minmax(240px, 1fr)')
+  })
+
+  it('no column prop at all falls back to the 3-column floor', () => {
+    const out = html(canvas(`<MetricsGrid items={[{ label: 'a', value: '1' }]} />`))
+    expect(out).toContain('minmax(200px, 1fr)')
+  })
+
+  it('`metrics` is still accepted as an alias of `items`', () => {
+    const out = html(canvas(`<MetricsGrid metrics={[{ label: 'L', value: '9' }]} />`))
+    expect(out).toContain('metric-label">L<')
+    expect(out).toContain('metric-value">9<')
+  })
 })
 
 describe('Stat — tone drives the value colour', () => {
@@ -163,6 +224,16 @@ describe('Stat — tone drives the value colour', () => {
     expect(out).toContain('color:#16a34a')
     expect(out).toContain('color:#dc2626')
     expect(out).toContain('color:#111827')
+  })
+
+  it('every SDK Tone value paints, including added/deleted', () => {
+    // `StatTone` is the shared `Tone` union, so `added`/`deleted` are legal and
+    // must not quietly fall through to the default black.
+    const out = html(
+      canvas('<Stack><Stat label="a" value="1" tone="added" /><Stat label="d" value="2" tone="deleted" /></Stack>'),
+    )
+    expect(out).toContain('color:#16a34a')
+    expect(out).toContain('color:#dc2626')
   })
 })
 
@@ -225,6 +296,25 @@ describe('fidelity notices — a gap is shown, never hidden', () => {
     expect(out).toContain('class="unknown-component"')
     expect(out).toContain('data-tag="RadarChart"')
     expect(out).toContain('inner')
+  })
+
+  it('a lowercase native tag passes through with NO notice', () => {
+    // The parser keeps lowercase tags verbatim as native HTML, and the corpus
+    // really does wrap report headers in `<header>`. Warning about it would be
+    // a false fidelity report — and it was: every `<header>` used to render a
+    // dashed "⚠ header" box.
+    const out = html(
+      canvas('<Stack><header><Text>title</Text></header><main><Text>body</Text></main></Stack>'),
+    )
+    expect(out).toContain('<header>')
+    expect(out).toContain('<main>')
+    expect(out).not.toContain('unknown-component')
+  })
+
+  it('a native tag keeps a scalar style and drops a nested one', () => {
+    const out = html(canvas('<div style={{ padding: 4, nested: { a: 1 } }}><Text>x</Text></div>'))
+    expect(out).toContain('padding:4px')
+    expect(out).not.toContain('nested')
   })
 })
 

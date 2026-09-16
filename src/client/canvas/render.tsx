@@ -102,11 +102,13 @@ const TONE_ICON: Record<string, string> = {
   neutral: '•',
 }
 
-/** `tone` -> `Stat` value colour. */
+/** `tone` -> `Stat` value colour. Covers the whole SDK `Tone` union. */
 const STAT_COLOR: Record<string, string> = {
   success: '#16a34a',
   ok: '#16a34a',
+  added: '#16a34a',
   danger: '#dc2626',
+  deleted: '#dc2626',
   warning: '#d97706',
   info: '#2563eb',
   primary: '#2563eb',
@@ -232,14 +234,23 @@ export function renderNode(node: CanvasNode, options: CanvasRenderOptions = {}):
     // ── data ──────────────────────────────────────────────────────────────
     case 'Table': {
       const columns = records(props.columns)
-      const data = records(props.data)
+      // The SDK names the record array `rows` (`ModernTableProps`); this
+      // renderer originally read `data`. `rows` is ALSO the legacy positional
+      // spelling, so the record filter — which drops arrays — is what keeps the
+      // two shapes apart: `rows={[{ k: 'v' }]}` is modern, `rows={[['v']]}` is
+      // legacy, and only the former binds here.
+      const explicit = records(props.data)
+      const data = explicit.length > 0 ? explicit : records(props.rows)
       const headers = list(props.headers)
 
       let colDefs: Array<{ label: string; key: string }>
       let rowData: Array<Record<string, CanvasProp>>
 
       if (columns.length > 0 && data.length > 0) {
-        colDefs = columns.map(c => ({ label: str(c.label) || str(c.key) || str(c.title), key: str(c.key) }))
+        // `label` is this renderer's own spelling. The SDK's display name is
+        // `title`, and `key` is the FIELD name — a fallback for the heading,
+        // never the heading itself.
+        colDefs = columns.map(c => ({ label: str(c.label) || str(c.title) || str(c.key), key: str(c.key) }))
         rowData = data
       } else if (headers.length > 0) {
         // `headers` + `rows` positional form: synthesise stable column keys.
@@ -303,7 +314,9 @@ export function renderNode(node: CanvasNode, options: CanvasRenderOptions = {}):
     }
     case 'MetricsGrid': {
       const metrics = records(props.metrics).length > 0 ? records(props.metrics) : records(props.items)
-      const cols = num(props.cols, 3)
+      // `columns` is the SDK spelling (`MetricsGridProps`); `cols` is the older
+      // one this renderer shipped with first. Both must keep working.
+      const cols = num(props.columns, num(props.cols, 3))
       const minWidth = cols <= 3 ? '200px' : '240px'
       return createElement(
         'div',
@@ -550,13 +563,23 @@ export function renderNode(node: CanvasNode, options: CanvasRenderOptions = {}):
     case 'code':
       return createElement('code', { className: 'code' }, kids())
 
-    // ── unknown -> transparent container with a fidelity notice ────────────
-    default:
+    // ── unknown -> a fidelity notice, but ONLY for a component ────────────
+    default: {
+      // A lowercase tag is native HTML, not a component. The parser keeps it
+      // verbatim (see `normaliseTag`), so it must pass through transparently:
+      // the corpus wraps report headers in `<header>`, and flagging that as an
+      // unknown COMPONENT was a false fidelity report. Only a capitalised tag
+      // we do not map is a genuine gap.
+      const native = node.tag !== '' && node.tag[0] === node.tag[0]?.toLowerCase() &&
+        node.tag[0] !== node.tag[0]?.toUpperCase()
+      if (native) return createElement(node.tag, { style: inlineStyle(props.style) }, kids())
+
       return createElement(
         'div',
         { className: 'unknown-component', 'data-tag': node.tag || '(Fragment)' },
         kids(),
       )
+    }
   }
 }
 
