@@ -1,7 +1,7 @@
 {
   "name": "dsh-canvas-tsx-sidebar",
-  "version": "0.1.0",
-  "description": "DSH web plugin (dsh-better-sidebar consumer): render Qoder Canvas `*.canvas.tsx` reports as a structured page in the right sidebar. Static parse only — no code execution.",
+  "version": "0.2.0",
+  "description": "DSH web plugin (dsh-better-sidebar consumer) for the DSH 0.1.5 line: render Qoder Canvas `*.canvas.tsx` reports as a structured page in the right sidebar. Static parse only — no code execution.",
   "type": "module",
   "main": "lib/index.mjs",
   "types": "lib/types/index.d.ts",
@@ -76,7 +76,8 @@
     "test": "vitest run",
     "audit:bundle": "node scripts/audit-bundle.cjs lib/client.js",
     "clean": "node -e \"require('node:fs').rmSync('lib',{recursive:true,force:true})\"",
-    "mount:check": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/mount-check.ps1"
+    "mount:check": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/mount-check.ps1",
+    "release:015": "npm publish --tag dsh-0.1.5"
   },
   "devDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",

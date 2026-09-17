@@ -5,7 +5,7 @@
 # row is disabled, renamed, or reconfigured here.
 #
 # 安装方式（推荐，官方 CLI）：
-#   dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.1.0.tgz>
+#   dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.2.0.tgz>
 #
 # 手动方式（备选）：把本包复制到 ~/.dsh/profiles/<profile>/node_modules/，
 # 并把下面这行追加到该 profile 的 cordis.patch.yml。
