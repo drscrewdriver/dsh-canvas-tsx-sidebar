@@ -1,10 +1,10 @@
 {
   "name": "dsh-canvas-tsx-sidebar",
-  "version": "0.3.0",
+  "version": "0.2.1",
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
     "access": "public",
-    "tag": "dsh-0.1.5"
+    "tag": "dsh-0.1.2"
   },
   "description": "DSH web plugin (dsh-better-sidebar consumer) for the DSH 0.1.5 line: render Qoder Canvas `*.canvas.tsx` reports as a structured page in the right sidebar. Static parse only — no code execution.",
   "type": "module",
@@ -59,7 +59,7 @@
   ],
   "license": "MIT",
   "engines": {
-    "dsh": ">=0.1.5-rc.1 <0.2.0-0"
+    "dsh": ">=0.1.2-rc.1 <0.2.0-0"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
