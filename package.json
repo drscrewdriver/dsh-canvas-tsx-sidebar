@@ -58,10 +58,14 @@
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/dsh-client-locale": ">=0.1.5-rc.1 <0.2.0-0",
     "dsh-better-sidebar": ">=0.18.1",
     "react": "^18.2.0"
   },
   "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-client-locale": {
+      "optional": true
+    },
     "dsh-better-sidebar": {
       "optional": true
     },
