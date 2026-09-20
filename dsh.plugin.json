@@ -4,7 +4,7 @@
   "main": "./lib/index.mjs",
   "description": "侧边栏 Canvas 报告：把工作区的 Qoder Canvas `*.canvas.tsx` 静态解析为结构化页面在 DSH 右侧栏渲染。纯静态管线，不执行源码。",
   "engines": {
-    "dsh": ">=0.1.5-rc.1"
+    "dsh": ">=0.1.5-rc.1 <0.2.0-0"
   },
   "contributes": {
     "tools": [],
