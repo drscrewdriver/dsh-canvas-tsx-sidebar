@@ -9,6 +9,8 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 
 本仓库还附带一个 **Skill**：`skills/writing-qoder-canvas/`，让 LLM 会写这种格式。见 [集成 Skill](#集成-skill让-llm-会写-canvastsx)。
 
+![canvas-tsx-sidebar](assets/canvas.png)
+
 ---
 
 ## 前置
