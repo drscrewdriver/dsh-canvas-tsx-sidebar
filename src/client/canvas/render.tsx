@@ -151,7 +151,6 @@ export function renderNode(node: CanvasNode, options: CanvasRenderOptions = {}):
   const tag = node.tag === '' ? 'div' : node.tag
   const props = node.props
   const kids = (): ReactNode => renderNodes(node.children, options)
-  const text = (): string => node.children.map(c => (c.kind === 'text' ? c.value : '')).join('')
 
   switch (tag) {
     // ── layout ────────────────────────────────────────────────────────────

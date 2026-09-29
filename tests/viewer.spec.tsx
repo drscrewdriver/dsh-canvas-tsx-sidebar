@@ -38,7 +38,7 @@ function fail(code: string, message: string, status = 200): Response {
 }
 
 function wire(routes: Record<string, () => Response>): void {
-  vi.stubGlobal('fetch', vi.fn(async (url: string, init: { body?: string }) => {
+  vi.stubGlobal('fetch', vi.fn(async (url: string, _init: { body?: string }) => {
     const method = String(url).replace('/sidebar/api/', '')
     const handler = routes[method]
     return handler === undefined ? fail('not-found', 'no route', 404) : handler()

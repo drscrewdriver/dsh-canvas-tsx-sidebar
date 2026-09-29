@@ -9,6 +9,8 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 
 本仓库还附带一个 **Skill**：`skills/writing-qoder-canvas/`，让 LLM 会写这种格式。见 [集成 Skill](#集成-skill让-llm-会写-canvastsx)。
 
+**兼容性范围（本线）**：**DSH 0.1.7 线** —— `engines.dsh` 为 `>=0.1.7-rc.1 <0.1.8-0`，实测基线 dsh-client-locale 0.1.7-rc.2；本分支 `compat/0.1.7`，发布走 npm dist-tag **`dsh-0.1.7`**（0.1.5 线由冻结的 `compat/0.1.5` 服务，0.2.0 线由 `compat/0.2.0` 服务）。
+
 ---
 
 ## 前置
@@ -23,7 +25,10 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 ### 方式 A（推荐，官方 CLI）
 
 ```sh
-dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.1.0.tgz>
+# 0.1.7 线发布走 dsh-0.1.7 dist-tag
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.7
+# 备选：本地 tarball
+dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.4.0.tgz>
 ```
 
 `dsh` 会把本包加入 `dsh.profile.bundles`，启动时由本包自带的 `cordis.patch.yml`
