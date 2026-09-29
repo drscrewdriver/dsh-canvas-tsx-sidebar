@@ -1,7 +1,7 @@
 {
   "name": "dsh-canvas-tsx-sidebar",
-  "version": "0.4.0",
-  "description": "DSH web plugin (dsh-better-sidebar consumer) for the DSH 0.1.7 line: render Qoder Canvas `*.canvas.tsx` reports as a structured page in the right sidebar. Static parse only — no code execution.",
+  "version": "0.5.0",
+  "description": "DSH web plugin (dsh-better-sidebar consumer) for the DSH 0.2.0 line: render Qoder Canvas `*.canvas.tsx` reports as a structured page in the right sidebar. Static parse only — no code execution.",
   "type": "module",
   "main": "lib/index.mjs",
   "types": "lib/types/index.d.ts",
@@ -54,11 +54,11 @@
   ],
   "license": "MIT",
   "engines": {
-    "dsh": ">=0.1.7-rc.1 <0.1.8-0"
+    "dsh": ">=0.2.0-rc.1 <0.2.1-0"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
-    "@deepseek-ai/dsh-client-locale": ">=0.1.7-rc.1 <0.1.8-0",
+    "@deepseek-ai/dsh-client-locale": ">=0.2.0-rc.1 <0.2.1-0",
     "dsh-better-sidebar": ">=0.18.1",
     "react": "^18.2.0"
   },
@@ -83,30 +83,31 @@
     "clean": "node -e \"require('node:fs').rmSync('lib',{recursive:true,force:true})\"",
     "mount:check": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/mount-check.ps1",
     "release:015": "npm publish --tag dsh-0.1.5",
-    "release:017": "npm publish --tag dsh-0.1.7"
+    "release:017": "npm publish --tag dsh-0.1.7",
+    "release:020": "npm publish --tag dsh-0.2.0"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org",
     "access": "public",
-    "tag": "dsh-0.1.5"
+    "tag": "dsh-0.1.7"
   },
   "devDependencies": {
-    "@deepseek-ai/cordis": "^4.0.2",
+    "@deepseek-ai/cordis": "^4.0.4",
     "@eslint/js": "^9.39.5",
-    "eslint": "^9.39.5",
-    "eslint-plugin-react": "^7.37.5",
-    "eslint-plugin-react-hooks": "^5.2.0",
-    "typescript-eslint": "^8.67.0",
     "@types/node": "^22.0.0",
     "@types/react": "~18.3.1",
     "@types/react-dom": "^18.3.7",
     "dsh-better-sidebar": "^0.19.1",
+    "eslint": "^9.39.5",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
     "jsdom": "^26.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "tsx": "^4.23.12",
     "tsdown": "^0.22.2",
+    "tsx": "^4.23.12",
     "typescript": "^5.6.0",
+    "typescript-eslint": "^8.67.0",
     "vitest": "^3.0.0"
   }
 }

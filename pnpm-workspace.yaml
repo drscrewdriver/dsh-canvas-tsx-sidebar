@@ -4,3 +4,7 @@
 allowBuilds:
   esbuild: true
   node-pty: false
+# pnpm 12 的供应链年龄门会把刚发布的 locale rc 钉回旧版；
+# 显式豁免本线实装版本，保证新机重解析时 peer 落在目标线（同族 brief-sidebar 惯例）。
+minimumReleaseAgeExclude:
+  - '@deepseek-ai/dsh-client-locale@0.2.0-rc.1'
