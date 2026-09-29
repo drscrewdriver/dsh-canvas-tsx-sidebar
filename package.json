@@ -28,6 +28,8 @@
   "files": [
     "lib",
     "src",
+    "assets",
+    "screenshots.json",
     "cordis.patch.yml",
     "dsh.plugin.json",
     "README.md"
