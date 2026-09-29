@@ -66,18 +66,6 @@ const BAR_STYLE = {
 
 const SCROLL_STYLE = { flex: 1, minHeight: 0, overflow: 'auto' } as const
 
-const BUTTON_STYLE = {
-  border: '1px solid var(--dsw-alias-border-secondary)',
-  background: 'var(--dsw-alias-bg-layer-2)',
-  color: 'var(--dsw-alias-label-primary)',
-  borderRadius: 6,
-  padding: '3px 10px',
-  cursor: 'pointer',
-  font: 'inherit',
-  fontSize: 12,
-  whiteSpace: 'nowrap',
-} as const
-
 const SEGMENT_STYLE = {
   display: 'inline-flex',
   border: '1px solid var(--dsw-alias-border-secondary)',

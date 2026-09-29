@@ -19,7 +19,6 @@ import {
   collapseJsxText,
   isIdentPart,
   matchDelimiter,
-  readIdent,
   readJsxTagName,
   readQuoted,
   skipTrivia,
