@@ -11,7 +11,17 @@ Analiza **estáticamente** los `*.canvas.tsx` del Qoder Canvas del espacio de tr
 
 Este repositorio incluye además un **Skill**: `skills/writing-qoder-canvas/`, que enseña a los LLM a escribir este formato. Ver [Integración del Skill](#integración-del-skill-enseñar-a-los-llm-a-escribir-canvastsx).
 
-**Alcance de compatibilidad (esta línea)**: **línea DSH 0.2.0** — `engines.dsh` es `>=0.2.0-rc.1 <0.2.1-0`, base probada: dsh-client-locale 0.2.0-rc.1; rama `compat/0.2.0`, publicación mediante el dist-tag de npm **`dsh-0.2.0`** (la línea 0.1.7 la atiende `compat/0.1.7`, y la 0.1.5 el `compat/0.1.5` congelado).
+**Alcance de compatibilidad**: **línea DSH 0.2.0** (esta línea) — `engines.dsh` es `>=0.2.0-rc.1 <0.2.1-0`, base probada: dsh-client-locale 0.2.0-rc.1, publicación mediante el dist-tag de npm **`dsh-0.2.0`**. 0.2.0 es puramente aditivo para todas las API del host que usa este plugin (solo consume `register(ns, locale, dict)` / `bind(ns)` de dsh-client-locale; la superficie de exportación del cliente es idéntica a la de 0.1.7-rc.2), por lo que la línea de soporte se desplaza en bloque hacia delante sin necesidad de rama de compatibilidad en tiempo de ejecución. **Elija siempre la versión del plugin según la versión de DSH** (no use `latest` a ciegas en hosts antiguos: no se cumplen las `engines` del host antiguo y la preverificación de arranque lo desactiva en silencio; los rangos caret tampoco cruzan minor del host):
+
+| Host DSH | Última versión del plugin | dist-tag de instalación |
+|---|---|---|
+| 0.2.0 | **0.5.0** (latest) | `dsh-0.2.0` |
+| 0.1.7 | 0.4.0 | `dsh-0.1.7` |
+| 0.1.5 | 0.3.2 | `dsh-0.1.5` |
+| 0.1.2 | 0.2.2 | `dsh-0.1.2` |
+| 0.1.1 y anteriores | no soportado (la línea 0.1.2 tiene como límite inferior 0.1.2-rc.1) | — |
+
+(a fecha de 2026-09-30; las líneas antiguas las atienden `compat/0.1.7` y las ramas congeladas `compat/0.1.5` y `archive/release/0.1.2`.)
 
 ---
 
@@ -27,9 +37,12 @@ Sin better-sidebar el plugin queda **totalmente inerte**: los dos registros se o
 ### Método A (recomendado, CLI oficial)
 
 ```sh
-# la línea 0.2.0 se publica mediante el dist-tag dsh-0.2.0
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.0
-# alternativa: tarball local
+# elija el dist-tag según la versión del host DSH (recomendado, no use latest a ciegas)
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.0   # línea DSH 0.2.0 (0.5.0)
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.7   # línea DSH 0.1.7 (0.4.0)
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.5   # línea DSH 0.1.5 (0.3.2)
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.2   # línea DSH 0.1.2 (0.2.2)
+# alternativa: tarball local (esta línea: dsh-canvas-tsx-sidebar-0.5.0.tgz)
 dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.5.0.tgz>
 ```
 

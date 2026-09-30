@@ -11,7 +11,17 @@ Il analyse **statiquement** les `*.canvas.tsx` du Qoder Canvas présents dans l'
 
 Ce dépôt embarque également un **Skill** : `skills/writing-qoder-canvas/`, qui apprend aux LLM à écrire ce format. Voir [Intégration du Skill](#intégration-du-skill--apprendre-aux-llm-à-écrire-du-canvastsx).
 
-**Périmètre de compatibilité (cette ligne)** : **ligne DSH 0.2.0** — `engines.dsh` vaut `>=0.2.0-rc.1 <0.2.1-0`, base testée : dsh-client-locale 0.2.0-rc.1 ; branche `compat/0.2.0`, publication via le dist-tag npm **`dsh-0.2.0`** (la ligne 0.1.7 est servie par `compat/0.1.7`, la ligne 0.1.5 par le `compat/0.1.5` gelé).
+**Périmètre de compatibilité** : **ligne DSH 0.2.0** (cette ligne) — `engines.dsh` vaut `>=0.2.0-rc.1 <0.2.1-0`, base testée : dsh-client-locale 0.2.0-rc.1, publication via le dist-tag npm **`dsh-0.2.0`**. 0.2.0 est purement additif pour toutes les API d'hôte utilisées par ce plugin (il ne consomme que `register(ns, locale, dict)` / `bind(ns)` de dsh-client-locale ; la surface d'export client est identique à celle de 0.1.7-rc.2) — la ligne de support est donc décalée en bloc vers l'avant, sans branche de compatibilité à l'exécution. **Choisissez toujours la version du plugin selon la version de DSH** (n'utilisez pas `latest` aveuglément sur un hôte ancien : les `engines` de l'ancien hôte ne sont plus satisfaites et la prévérification de démarrage le désactive en silence ; les plages caret ne traversent pas non plus les minor de l'hôte) :
+
+| Hôte DSH | Dernière version du plugin | dist-tag d'installation |
+|---|---|---|
+| 0.2.0 | **0.5.0** (latest) | `dsh-0.2.0` |
+| 0.1.7 | 0.4.0 | `dsh-0.1.7` |
+| 0.1.5 | 0.3.2 | `dsh-0.1.5` |
+| 0.1.2 | 0.2.2 | `dsh-0.1.2` |
+| 0.1.1 et antérieurs | non pris en charge (la ligne 0.1.2 a pour borne inférieure 0.1.2-rc.1) | — |
+
+(au 2026-09-30 ; les lignes anciennes sont servies par `compat/0.1.7` ainsi que les branches gelées `compat/0.1.5` et `archive/release/0.1.2`.)
 
 ---
 
@@ -27,9 +37,12 @@ Sans better-sidebar, le plugin reste **totalement inerte** : les deux enregistre
 ### Méthode A (recommandée, CLI officiel)
 
 ```sh
-# la ligne 0.2.0 est publiée via le dist-tag dsh-0.2.0
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.0
-# alternative : tarball local
+# choisissez le dist-tag selon la version de l'hôte DSH (recommandé, pas de latest aveugle)
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.0   # ligne DSH 0.2.0 (0.5.0)
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.7   # ligne DSH 0.1.7 (0.4.0)
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.5   # ligne DSH 0.1.5 (0.3.2)
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.2   # ligne DSH 0.1.2 (0.2.2)
+# alternative : tarball local (cette ligne : dsh-canvas-tsx-sidebar-0.5.0.tgz)
 dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.5.0.tgz>
 ```
 

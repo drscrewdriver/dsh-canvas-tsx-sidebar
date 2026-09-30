@@ -11,7 +11,17 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 
 本仓库还附带一个 **Skill**：`skills/writing-qoder-canvas/`，让 LLM 会写这种格式。见 [集成 Skill](#集成-skill让-llm-会写-canvastsx)。
 
-**兼容性范围（本线）**：**DSH 0.2.0 线** —— `engines.dsh` 为 `>=0.2.0-rc.1 <0.2.1-0`，实测基线 dsh-client-locale 0.2.0-rc.1；本分支 `compat/0.2.0`，发布走 npm dist-tag **`dsh-0.2.0`**（0.1.7 线由 `compat/0.1.7` 服务，0.1.5 线由冻结的 `compat/0.1.5` 服务）。
+**兼容性范围**：**DSH 0.2.0 线**（本线）—— `engines.dsh` 为 `>=0.2.0-rc.1 <0.2.1-0`，实测基线 dsh-client-locale 0.2.0-rc.1，发布走 npm dist-tag **`dsh-0.2.0`**。0.2.0 对本插件所用的全部宿主 API 是纯增量（本插件只消费 dsh-client-locale 的 `register(ns, locale, dict)` / `bind(ns)`，client 导出面与 0.1.7-rc.2 完全一致），所以支持线整体前移即可，没有运行时兼容分支。**按 DSH 版本选插件版本**（不要在旧宿主上裸用 `latest`——不满足旧宿主 `engines` 会被启动预检静默禁用；caret 范围跨宿主 minor 也不成立）：
+
+| DSH 宿主 | 本插件最新版本 | 安装 dist-tag |
+|---|---|---|
+| 0.2.0 | **0.5.0**（latest） | `dsh-0.2.0` |
+| 0.1.7 | 0.4.0 | `dsh-0.1.7` |
+| 0.1.5 | 0.3.2 | `dsh-0.1.5` |
+| 0.1.2 | 0.2.2 | `dsh-0.1.2` |
+| 0.1.1 及更早 | 不支持（本包最早的 0.1.2 线下限为 0.1.2-rc.1） | — |
+
+（截至 2026-09-30；旧线版本由 `compat/0.1.7` / 冻结的 `compat/0.1.5`、`archive/release/0.1.2` 分支服务。）
 
 ---
 
@@ -27,9 +37,12 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 ### 方式 A（推荐，官方 CLI）
 
 ```sh
-# 0.2.0 线发布走 dsh-0.2.0 dist-tag
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.0
-# 备选：本地 tarball
+# 按 DSH 宿主版本选 dist-tag（推荐，勿用裸 latest）
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.0   # DSH 0.2.0 线（0.5.0）
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.7   # DSH 0.1.7 线（0.4.0）
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.5   # DSH 0.1.5 线（0.3.2）
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.2   # DSH 0.1.2 线（0.2.2）
+# 备选：本地 tarball（本线为 dsh-canvas-tsx-sidebar-0.5.0.tgz）
 dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.5.0.tgz>
 ```
 
