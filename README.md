@@ -1,5 +1,7 @@
 # dsh-canvas-tsx-sidebar
 
+[简体中文](README.md) | [Français](README.fr.md) | [Deutsch](README.de.md) | [Italiano](README.it.md) | [Русский](README.ru.md) | [Español](README.es.md)
+
 DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**。
 
 把工作区里的 Qoder Canvas `*.canvas.tsx` **静态解析**为结构化页面，在 DSH 右侧栏渲染。
