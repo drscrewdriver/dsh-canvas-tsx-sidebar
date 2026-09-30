@@ -11,6 +11,8 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 
 本仓库还附带一个 **Skill**：`skills/writing-qoder-canvas/`，让 LLM 会写这种格式。见 [集成 Skill](#集成-skill让-llm-会写-canvastsx)。
 
+![canvas-tsx-sidebar](assets/canvas.png)
+
 **兼容性范围**：**DSH 0.2.0 线**（本线）—— `engines.dsh` 为 `>=0.2.0-rc.1 <0.2.1-0`，实测基线 dsh-client-locale 0.2.0-rc.1，发布走 npm dist-tag **`dsh-0.2.0`**。0.2.0 对本插件所用的全部宿主 API 是纯增量（本插件只消费 dsh-client-locale 的 `register(ns, locale, dict)` / `bind(ns)`，client 导出面与 0.1.7-rc.2 完全一致），所以支持线整体前移即可，没有运行时兼容分支。**按 DSH 版本选插件版本**（不要在旧宿主上裸用 `latest`——不满足旧宿主 `engines` 会被启动预检静默禁用；caret 范围跨宿主 minor 也不成立）：
 
 | DSH 宿主 | 本插件最新版本 | 安装 dist-tag |

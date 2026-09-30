@@ -11,6 +11,8 @@ Il analyse **statiquement** les `*.canvas.tsx` du Qoder Canvas présents dans l'
 
 Ce dépôt embarque également un **Skill** : `skills/writing-qoder-canvas/`, qui apprend aux LLM à écrire ce format. Voir [Intégration du Skill](#intégration-du-skill--apprendre-aux-llm-à-écrire-du-canvastsx).
 
+![canvas-tsx-sidebar](assets/canvas.png)
+
 **Périmètre de compatibilité** : **ligne DSH 0.2.0** (cette ligne) — `engines.dsh` vaut `>=0.2.0-rc.1 <0.2.1-0`, base testée : dsh-client-locale 0.2.0-rc.1, publication via le dist-tag npm **`dsh-0.2.0`**. 0.2.0 est purement additif pour toutes les API d'hôte utilisées par ce plugin (il ne consomme que `register(ns, locale, dict)` / `bind(ns)` de dsh-client-locale ; la surface d'export client est identique à celle de 0.1.7-rc.2) — la ligne de support est donc décalée en bloc vers l'avant, sans branche de compatibilité à l'exécution. **Choisissez toujours la version du plugin selon la version de DSH** (n'utilisez pas `latest` aveuglément sur un hôte ancien : les `engines` de l'ancien hôte ne sont plus satisfaites et la prévérification de démarrage le désactive en silence ; les plages caret ne traversent pas non plus les minor de l'hôte) :
 
 | Hôte DSH | Dernière version du plugin | dist-tag d'installation |
