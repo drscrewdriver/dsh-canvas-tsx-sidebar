@@ -35,7 +35,11 @@ import { dictionaries, NS } from './locales'
 export const TAB_ID = 'dsh-canvas-tsx:report'
 
 /** Services required before `apply` runs. */
-export const inject = ['betterSidebar', 'locale']
+// Empty list: betterSidebar/locale ride ctx.get soft-reads below (absent on
+// 0.1.0/0.1.1 — declaring them pends the whole client entry; playbook §1).
+// This plugin mounts entirely via better-sidebar's registerTab, so it consumes
+// no generation-neutral service either.
+export const inject = []
 
 /**
  * Structural view of the DSH locale service. Kept local on purpose: reaching
