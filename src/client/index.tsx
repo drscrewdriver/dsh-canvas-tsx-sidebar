@@ -51,9 +51,21 @@ interface LocaleLike {
   bind(ns: string): (key: string) => string
 }
 
-/** Narrow `ctx.locale` without asserting the whole context. */
+/**
+ * Narrow the locale service. The 0.1.7+ loader wraps ctx in a strict proxy that
+ * THROWS on undeclared property reads (empty inject list), so the property read
+ * rides a try/catch with a ctx.get fallback — same discipline as softSvc.
+ */
 function localeOf(ctx: Context): LocaleLike | undefined {
-  const locale = (ctx as unknown as { locale?: LocaleLike }).locale
+  let locale: LocaleLike | undefined
+  try {
+    locale = (ctx as unknown as { locale?: LocaleLike }).locale
+  } catch { /* strict proxy: undeclared service read */ }
+  if (locale === undefined) {
+    try {
+      locale = (ctx as unknown as { get?: (n: string) => unknown }).get?.('locale') as LocaleLike | undefined
+    } catch { /* ignore */ }
+  }
   if (locale === undefined) return undefined
   if (typeof locale.register !== 'function' || typeof locale.bind !== 'function') return undefined
   return locale
@@ -91,7 +103,15 @@ export function apply(ctx: Context): void {
   }
 
   // Soft dependency: absent better-sidebar leaves the plugin fully inert.
-  const bar = (ctx as unknown as { betterSidebar?: BetterSidebarService }).betterSidebar
+  let bar: BetterSidebarService | undefined
+  try {
+    bar = (ctx as unknown as { betterSidebar?: BetterSidebarService }).betterSidebar
+  } catch { /* strict proxy: undeclared service read */ }
+  if (bar === undefined) {
+    try {
+      bar = (ctx as unknown as { get?: (n: string) => unknown }).get?.('betterSidebar') as BetterSidebarService | undefined
+    } catch { /* ignore */ }
+  }
   if (bar === undefined) return
 
   ctx.effect(
