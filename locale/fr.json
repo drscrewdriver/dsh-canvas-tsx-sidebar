@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Rapport Canvas dans la barre latérale",
+    "description": "Affiche les rapports .canvas.tsx de Qoder Canvas comme une page structurée dans la barre latérale droite."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Canvas 报告侧边栏",
+    "description": "把 Qoder Canvas 的 .canvas.tsx 报告渲染成右侧边栏里的结构化页面。"
+  }
+}

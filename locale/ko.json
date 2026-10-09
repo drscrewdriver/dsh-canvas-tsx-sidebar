@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Canvas 보고서 사이드바",
+    "description": "Qoder Canvas의 .canvas.tsx 보고서를 오른쪽 사이드바에 구조화된 페이지로 렌더링합니다."
+  }
+}

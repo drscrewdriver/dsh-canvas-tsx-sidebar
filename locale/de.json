@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Canvas-Bericht in der Seitenleiste",
+    "description": "Rendert Qoder-Canvas-Berichte (.canvas.tsx) als strukturierte Seite in der rechten Seitenleiste."
+  }
+}

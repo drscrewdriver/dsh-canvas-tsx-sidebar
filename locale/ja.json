@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Canvas レポートサイドバー",
+    "description": "Qoder Canvas の .canvas.tsx レポートを右サイドバーに構造化ページとして描画します。"
+  }
+}

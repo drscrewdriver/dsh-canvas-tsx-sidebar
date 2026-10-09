@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Canvas Report Sidebar",
+    "description": "Render Qoder Canvas .canvas.tsx reports as a structured page in the right sidebar."
+  }
+}
