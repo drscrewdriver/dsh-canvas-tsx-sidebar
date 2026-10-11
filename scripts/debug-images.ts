@@ -1,3 +1,6 @@
+// 调试脚本：扫描指定 .canvas.tsx 文件里的 canvasImage('...') 图片引用，
+// 逐个检查相对路径能否在 canvas 目录旁解析到真实文件，并打印大小与 base64 长度。
+// 一次性排查用入口（srcPath 硬编码），不参与构建。
 import { readFileSync, existsSync, statSync } from 'fs';
 import { join, dirname, extname } from 'path';
 
@@ -5,6 +8,7 @@ const srcPath = 'C:/Users/joshua/.qoder/projects/e--test-rewrite-agently/canvase
 const src = readFileSync(srcPath, 'utf-8');
 const canvasDir = dirname(srcPath);
 
+// 匹配 `canvasImage('路径')` 调用（允许 const xx = 前缀），捕获组为图片相对路径
 const re = /(?:const\s+\w+\s*=\s*)?canvasImage\(['"]([^'"]+)['"]\)/g;
 let m: RegExpExecArray | null;
 let count = 0;

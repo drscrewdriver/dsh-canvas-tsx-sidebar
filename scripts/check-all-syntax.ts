@@ -1,7 +1,11 @@
+// 批量语法检查脚本：扫描各工作区 canvases 目录下的 *.canvas.tsx，
+// 调用 scripts/syntax-oracle.cjs 做 TS parse 诊断，汇总打印有错文件及诊断数。
+// 本地开发辅助入口，不参与构建；dirs/cwd 为硬编码的绝对路径。
 import { readFileSync, readdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { execSync } from 'child_process';
 
+// 待扫描的 canvas 目录清单（不存在的目录跳过），去重后逐文件送 syntax-oracle
 const dirs = [
   'C:/Users/joshua/.qoder/projects/e--test-rewrite-agently/canvases',
   'C:/Users/joshua/.qoder/projects/e--test-devops-manager-workspace/canvases',
