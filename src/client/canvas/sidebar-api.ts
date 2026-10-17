@@ -30,6 +30,13 @@ export interface Scope {
   readonly cwd?: string
   /** Selected Git repository when cwd is a workspace container. */
   readonly repoRoot?: string
+  /**
+   * Which gateway serves this session's files: `'/sidebar'` (default,
+   * better-sidebar's route) or `'/canvas'` (the plugin's own gateway, used on
+   * native-path hosts with no better-sidebar). The api suffix `/api/<method>`
+   * and the media suffix `/file` are appended here, matching both servers.
+   */
+  readonly apiBase?: string
 }
 
 /** One host wire failure. */
@@ -63,10 +70,10 @@ export function isOutsideWorkspace(error: unknown): boolean {
 }
 
 /** POST one method and unwrap the envelope. */
-async function call<T>(method: string, payload: Record<string, unknown>, signal?: AbortSignal): Promise<T> {
+async function call<T>(scope: Scope, method: string, payload: Record<string, unknown>, signal?: AbortSignal): Promise<T> {
   let response: Response
   try {
-    response = await fetch(`/sidebar/api/${method}`, {
+    response = await fetch(`${scope.apiBase ?? '/sidebar'}/api/${method}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify(payload),
@@ -117,7 +124,7 @@ export async function fsReadText(
     content?: string
     truncated?: boolean
     size?: number
-  }>('fs.read', scoped(scope, { path }), signal)
+  }>(scope, 'fs.read', scoped(scope, { path }), signal)
 
   if (value.kind !== 'text' || typeof value.content !== 'string') {
     throw new SidebarApiError('binary', `${path} is not a text file`)
@@ -138,5 +145,17 @@ export function mediaUrl(scope: Scope, path: string): string {
   const params = new URLSearchParams({ sessionId: scope.sessionId, path })
   if (scope.cwd !== undefined && scope.cwd !== '') params.set('cwd', scope.cwd)
   const origin = typeof window === 'undefined' ? '' : window.location.origin
-  return `${origin}/sidebar/file?${params.toString()}`
+  return `${origin}${scope.apiBase ?? '/sidebar'}/file?${params.toString()}`
+}
+
+/**
+ * Ask the gateway which workspace root it resolved for this session.
+ *
+ * Only the `/canvas` gateway answers it (`/sidebar` has no such method and
+ * the call simply fails) — the native path uses it once per mount to fill
+ * `scope.cwd`, which the client-side absolute-path guard and the media fence
+ * both read.
+ */
+export async function sessionInfo(scope: Scope, signal?: AbortSignal): Promise<{ cwd: string }> {
+  return call<{ cwd: string }>(scope, 'session.info', scoped(scope, {}), signal)
 }
