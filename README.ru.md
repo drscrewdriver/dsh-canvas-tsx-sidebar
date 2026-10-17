@@ -13,17 +13,23 @@
 
 ![canvas-tsx-sidebar](assets/canvas.png)
 
-**Диапазон совместимости**: **линия DSH 0.2.0** (эта линия) — `engines.dsh` равен `>=0.2.0-rc.1 <0.2.1-0`, проверенная база — dsh-client-locale 0.2.0-rc.1, публикация через npm dist-tag **`dsh-0.2.0`**. 0.2.0 чисто аддитивен для всех API хоста, которые использует этот плагин (он потребляет только `register(ns, locale, dict)` / `bind(ns)` из dsh-client-locale; поверхность клиентских экспортов идентична 0.1.7-rc.2), поэтому линия поддержки целиком сдвигается вперёд — ветка совместимости на уровне рантайма не нужна. **Версию плагина выбирайте строго по версии DSH** (не используйте `latest` вслепую на старых хостах: `engines` старого хоста перестают выполняться, и плагин молча отключается стартовой предпроверкой; caret-диапазоны также не переходят через minor хоста):
+**Диапазон совместимости**: **полное перечисление единой линией** — `engines.dsh` — точное перечисление из 16 позиций (та же строка в package.json `engines`, peer `@deepseek-ai/dsh-client-locale` и `dsh.plugin.json`; без интервалов, без caret):
 
-| Хост DSH | Последняя версия плагина | dist-tag для установки |
+```text
+0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1
+```
+
+**0.7.1 (latest / `dsh-0.2.1-rc.1`) и выше** устанавливается на любой из перечисленных хостов; неперечисленные версии хоста (в т.ч. 0.2.1 stable и линия 0.2.2) вне заявленной области — при выпуске stable-версии перечисление нужно расширить и перевыпустить; не используйте `latest` вслепую на необъявленных хостах (`engines` не удовлетворены → тихая блокировка стартовой проверкой). Исторические dist-tag старых линий (все = 0.6.0, 15 позиций до 0.2.0-rc.2):
+
+| DSH host | plugin version | install dist-tag |
 |---|---|---|
-| 0.2.0 | **0.5.0** (latest) | `dsh-0.2.0` |
-| 0.1.7 | 0.4.0 | `dsh-0.1.7` |
-| 0.1.5 | 0.3.2 | `dsh-0.1.5` |
-| 0.1.2 | 0.2.2 | `dsh-0.1.2` |
-| 0.1.1 и ранее | не поддерживается (у линии 0.1.2 нижняя граница — 0.1.2-rc.1) | — |
+| any in the 16-term enum (incl. 0.2.1-rc.1) | **0.7.1** (latest) | `latest` or `dsh-0.2.1-rc.1` |
+| 0.2.0-rc.1/rc.2 | 0.6.0 | `dsh-0.2.0` |
+| 0.1.7-rc.1/rc.2 | 0.6.0 | `dsh-0.1.7` |
+| 0.1.5 line | 0.6.0 | `dsh-0.1.5` |
+| 0.1.2-rc.1 | 0.6.0 | `dsh-0.1.2` |
 
-(по состоянию на 2026-09-30; старые линии обслуживают `compat/0.1.7`, а также замороженные ветки `compat/0.1.5` и `archive/release/0.1.2`.)
+(по состоянию на 2026-10-17; старые линии обслуживаются ветками `compat/0.1.7` / замороженной `compat/0.1.5` и `archive/release/0.1.2`.)
 
 ---
 
@@ -39,13 +45,12 @@
 ### Способ A (рекомендуется, официальный CLI)
 
 ```sh
-# выбирайте dist-tag по версии хоста DSH (рекомендуется, не используйте latest вслепую)
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.0   # линия DSH 0.2.0 (0.5.0)
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.7   # линия DSH 0.1.7 (0.4.0)
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.5   # линия DSH 0.1.5 (0.3.2)
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.2   # линия DSH 0.1.2 (0.2.2)
-# альтернатива: локальный tarball (эта линия: dsh-canvas-tsx-sidebar-0.5.0.tgz)
-dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.5.0.tgz>
+# hosts inside the 16-term enum (incl. 0.2.1-rc.1): latest works
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest          # 0.7.1, 16-term full enumeration
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.1-rc.1  # same, explicit line tag
+# alt: local tarball (this line: dsh-canvas-tsx-sidebar-0.7.1.tgz)
+dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.7.1.tgz>
+```
 ```
 
 `dsh` добавляет этот пакет в `dsh.profile.bundles`; при запуске входящий в пакет `cordis.patch.yml` вставляет запись загрузчика, и клиентский бандл регистрируется и доставляется согласно `entry.name`.

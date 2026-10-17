@@ -13,17 +13,23 @@ Questo repository include anche uno **Skill**: `skills/writing-qoder-canvas/`, c
 
 ![canvas-tsx-sidebar](assets/canvas.png)
 
-**Perimetro di compatibilità**: **linea DSH 0.2.0** (questa linea) — `engines.dsh` è `>=0.2.0-rc.1 <0.2.1-0`, base testata: dsh-client-locale 0.2.0-rc.1, pubblicazione tramite il dist-tag npm **`dsh-0.2.0`**. 0.2.0 è puramente additivo per tutte le API dell'host usate da questo plugin (consuma solo `register(ns, locale, dict)` / `bind(ns)` di dsh-client-locale; la superficie di export client è identica a quella di 0.1.7-rc.2) — la linea di supporto viene quindi spostata in blocco in avanti, senza branch di compatibilità a runtime. **Scegliete sempre la versione del plugin in base alla versione di DSH** (non usate `latest` alla cieca su host vecchi: le `engines` del vecchio host non risultano soddisfatte e la preverifica di avvio lo disattiva in silenzio; anche i range caret non attraversano le minor dell'host):
+**Perimetro di compatibilità**: **enumerazione globale a un solo filo** — `engines.dsh` è un'enumerazione esatta a 16 termini (la stessa stringa in package.json `engines`, nel peer `@deepseek-ai/dsh-client-locale` e in `dsh.plugin.json`; né intervalli, né caret):
 
-| Host DSH | Ultima versione del plugin | dist-tag di installazione |
+```text
+0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1
+```
+
+**0.7.1 (latest / `dsh-0.2.1-rc.1`) e superiori** si installano su ogni host elencato; le versioni host non elencate (incl. 0.2.1 stable e la linea 0.2.2) non sono nel dominio dichiarato — al rilascio della versione stable l'enumerazione va estesa e va ripubblicato; non usate `latest` alla cieca su host non dichiarati (`engines` non soddisfatte → disattivazione silenziosa nella preverifica di avvio). Dist-tag storici delle linee precedenti (tutti = 0.6.0, enumerazione a 15 termini fino a 0.2.0-rc.2):
+
+| DSH host | plugin version | install dist-tag |
 |---|---|---|
-| 0.2.0 | **0.5.0** (latest) | `dsh-0.2.0` |
-| 0.1.7 | 0.4.0 | `dsh-0.1.7` |
-| 0.1.5 | 0.3.2 | `dsh-0.1.5` |
-| 0.1.2 | 0.2.2 | `dsh-0.1.2` |
-| 0.1.1 e precedenti | non supportato (la linea 0.1.2 ha come limite inferiore 0.1.2-rc.1) | — |
+| any in the 16-term enum (incl. 0.2.1-rc.1) | **0.7.1** (latest) | `latest` or `dsh-0.2.1-rc.1` |
+| 0.2.0-rc.1/rc.2 | 0.6.0 | `dsh-0.2.0` |
+| 0.1.7-rc.1/rc.2 | 0.6.0 | `dsh-0.1.7` |
+| 0.1.5 line | 0.6.0 | `dsh-0.1.5` |
+| 0.1.2-rc.1 | 0.6.0 | `dsh-0.1.2` |
 
-(al 2026-09-30; le linee precedenti sono servite da `compat/0.1.7` e dai branch congelati `compat/0.1.5` e `archive/release/0.1.2`.)
+(al 2026-10-17; le linee precedenti sono servite dai rami `compat/0.1.7` / `compat/0.1.5` congelato e `archive/release/0.1.2`.)
 
 ---
 
@@ -39,13 +45,12 @@ Senza better-sidebar il plugin resta **completamente inerte**: le due registrazi
 ### Metodo A (consigliato, CLI ufficiale)
 
 ```sh
-# scegliete il dist-tag in base alla versione dell'host DSH (consigliato, niente latest alla cieca)
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.0   # linea DSH 0.2.0 (0.5.0)
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.7   # linea DSH 0.1.7 (0.4.0)
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.5   # linea DSH 0.1.5 (0.3.2)
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.2   # linea DSH 0.1.2 (0.2.2)
-# alternativa: tarball locale (questa linea: dsh-canvas-tsx-sidebar-0.5.0.tgz)
-dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.5.0.tgz>
+# hosts inside the 16-term enum (incl. 0.2.1-rc.1): latest works
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest          # 0.7.1, 16-term full enumeration
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.1-rc.1  # same, explicit line tag
+# alt: local tarball (this line: dsh-canvas-tsx-sidebar-0.7.1.tgz)
+dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.7.1.tgz>
+```
 ```
 
 `dsh` aggiunge questo pacchetto a `dsh.profile.bundles`; all'avvio il `cordis.patch.yml` incluso nel pacchetto inserisce la voce del loader, e il bundle client viene registrato e distribuito secondo `entry.name`.

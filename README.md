@@ -13,17 +13,23 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 
 ![canvas-tsx-sidebar](assets/canvas.png)
 
-**兼容性范围**：**DSH 0.2.0 线**（本线）—— `engines.dsh` 为 `>=0.2.0-rc.1 <0.2.1-0`，实测基线 dsh-client-locale 0.2.0-rc.1，发布走 npm dist-tag **`dsh-0.2.0`**。0.2.0 对本插件所用的全部宿主 API 是纯增量（本插件只消费 dsh-client-locale 的 `register(ns, locale, dict)` / `bind(ns)`，client 导出面与 0.1.7-rc.2 完全一致），所以支持线整体前移即可，没有运行时兼容分支。**按 DSH 版本选插件版本**（不要在旧宿主上裸用 `latest`——不满足旧宿主 `engines` 会被启动预检静默禁用；caret 范围跨宿主 minor 也不成立）：
+**兼容性范围**：**全域单线枚举**—— `engines.dsh` 为 16 项精确枚举串（同串落在 package.json engines / peer dsh-client-locale / dsh.plugin.json 三处，无区间、无 caret）：
 
-| DSH 宿主 | 本插件最新版本 | 安装 dist-tag |
+```text
+0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1
+```
+
+**0.7.1（latest / `dsh-0.2.1-rc.1`）及以上**在上述每个宿主版本可装；未列出的宿主版本（含 0.2.1 稳定版、0.2.2 线）不在声明域——稳定版发布时需另行补枚举并重新发版，不要在未声明宿主上裸用 `latest`（不满足宿主 `engines` 会被启动预检静默禁用）。旧线历史 dist-tag（均 = 0.6.0，15 项枚举止 0.2.0-rc.2）：
+
+| DSH 宿主 | 本插件可用版本 | 安装 dist-tag |
 |---|---|---|
-| 0.2.0 | **0.5.0**（latest） | `dsh-0.2.0` |
-| 0.1.7 | 0.4.0 | `dsh-0.1.7` |
-| 0.1.5 | 0.3.2 | `dsh-0.1.5` |
-| 0.1.2 | 0.2.2 | `dsh-0.1.2` |
-| 0.1.1 及更早 | 不支持（本包最早的 0.1.2 线下限为 0.1.2-rc.1） | — |
+| 枚举串内任一（含 0.2.1-rc.1） | **0.7.1**（latest） | `latest` 或 `dsh-0.2.1-rc.1` |
+| 0.2.0-rc.1/rc.2 | 0.6.0 | `dsh-0.2.0` |
+| 0.1.7-rc.1/rc.2 | 0.6.0 | `dsh-0.1.7` |
+| 0.1.5 线 | 0.6.0 | `dsh-0.1.5` |
+| 0.1.2-rc.1 | 0.6.0 | `dsh-0.1.2` |
 
-（截至 2026-09-30；旧线版本由 `compat/0.1.7` / 冻结的 `compat/0.1.5`、`archive/release/0.1.2` 分支服务。）
+（截至 2026-10-17；旧线源码由 `compat/0.1.7` / 冻结的 `compat/0.1.5`、`archive/release/0.1.2` 分支服务。）
 
 ---
 
@@ -39,13 +45,11 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 ### 方式 A（推荐，官方 CLI）
 
 ```sh
-# 按 DSH 宿主版本选 dist-tag（推荐，勿用裸 latest）
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.0   # DSH 0.2.0 线（0.5.0）
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.7   # DSH 0.1.7 线（0.4.0）
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.5   # DSH 0.1.5 线（0.3.2）
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.1.2   # DSH 0.1.2 线（0.2.2）
-# 备选：本地 tarball（本线为 dsh-canvas-tsx-sidebar-0.5.0.tgz）
-dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.5.0.tgz>
+# 枚举串内宿主（含 0.2.1-rc.1）直接 latest；或钉本线专用 tag
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest        # 0.7.1，16 项全域枚举
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.1-rc.1 # 同上，显式钉线
+# 备选：本地 tarball（本线为 dsh-canvas-tsx-sidebar-0.7.1.tgz）
+dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.7.1.tgz>
 ```
 
 `dsh` 会把本包加入 `dsh.profile.bundles`，启动时由本包自带的 `cordis.patch.yml`

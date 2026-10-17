@@ -1,16 +1,19 @@
 /**
  * Node half of the Canvas report plugin.
  *
- * The Cordis loader needs an entry point for the profile row; the plugin's
- * behaviour is entirely in the browser half, which `dsh-client-modules` serves
- * from `./client`. This half therefore installs nothing and owns no state —
- * in particular it adds no HTTP route and no tool.
+ * On hosts that run better-sidebar the browser half reads files through its
+ * `/sidebar/api/fs.read`; on a bare 0.1.5+ host there is no such route, so
+ * this half serves the plugin's own gateway (`/canvas/api` + `/canvas/file`,
+ * faithful to the dsh-browser-cdp / dsh-mcp-registry webServer pattern) with
+ * the same envelope shape the client already speaks. The webServer service is
+ * optional: a pure-agent host installs nothing and the browser half simply
+ * never runs.
  */
+import type { Context } from '@deepseek-ai/cordis';
 /** Profile row identity. */
 export declare const name = "dsh-canvas-tsx-sidebar";
 /**
- * Node-face apply. Intentionally empty: parsing and rendering are static and
- * run in the browser half over content fetched from better-sidebar's own
- * `/sidebar/api/fs.read` (which owns the workspace-root path fence).
+ * Node-face apply: mount the gateway when this process serves a web shell.
+ * @param ctx - the node plugin context.
  */
-export declare function apply(): void;
+export declare function apply(ctx: Context): void;

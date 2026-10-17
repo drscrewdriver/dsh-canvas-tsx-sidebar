@@ -29,6 +29,13 @@ export interface Scope {
     readonly cwd?: string;
     /** Selected Git repository when cwd is a workspace container. */
     readonly repoRoot?: string;
+    /**
+     * Which gateway serves this session's files: `'/sidebar'` (default,
+     * better-sidebar's route) or `'/canvas'` (the plugin's own gateway, used on
+     * native-path hosts with no better-sidebar). The api suffix `/api/<method>`
+     * and the media suffix `/file` are appended here, matching both servers.
+     */
+    readonly apiBase?: string;
 }
 /** One host wire failure. */
 export declare class SidebarApiError extends Error {
@@ -61,3 +68,14 @@ export declare function fsReadText(scope: Scope, path: string, signal?: AbortSig
  * renderer only accepts absolute http(s) image URLs.
  */
 export declare function mediaUrl(scope: Scope, path: string): string;
+/**
+ * Ask the gateway which workspace root it resolved for this session.
+ *
+ * Only the `/canvas` gateway answers it (`/sidebar` has no such method and
+ * the call simply fails) — the native path uses it once per mount to fill
+ * `scope.cwd`, which the client-side absolute-path guard and the media fence
+ * both read.
+ */
+export declare function sessionInfo(scope: Scope, signal?: AbortSignal): Promise<{
+    cwd: string;
+}>;
