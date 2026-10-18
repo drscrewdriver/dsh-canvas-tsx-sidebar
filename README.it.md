@@ -13,17 +13,17 @@ Questo repository include anche uno **Skill**: `skills/writing-qoder-canvas/`, c
 
 ![canvas-tsx-sidebar](assets/canvas.png)
 
-**Perimetro di compatibilità**: **enumerazione globale a un solo filo** — `engines.dsh` è un'enumerazione esatta a 16 termini (la stessa stringa in package.json `engines`, nel peer `@deepseek-ai/dsh-client-locale` e in `dsh.plugin.json`; né intervalli, né caret):
+**Perimetro di compatibilità**: **enumerazione globale a un solo filo** — `engines.dsh` è un'enumerazione esatta a 17 termini (la stessa stringa in package.json `engines`, nel peer `@deepseek-ai/dsh-client-locale` e in `dsh.plugin.json`; né intervalli, né caret):
 
 ```text
-0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1
+0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2
 ```
 
-**0.7.1 (latest / `dsh-0.2.1-rc.1`) e superiori** si installano su ogni host elencato; le versioni host non elencate (incl. 0.2.1 stable e la linea 0.2.2) non sono nel dominio dichiarato — al rilascio della versione stable l'enumerazione va estesa e va ripubblicato; non usate `latest` alla cieca su host non dichiarati (`engines` non soddisfatte → disattivazione silenziosa nella preverifica di avvio). Dist-tag storici delle linee precedenti (tutti = 0.6.0, enumerazione a 15 termini fino a 0.2.0-rc.2):
+**0.7.2 (latest / `dsh-0.2.1-rc.2`) e superiori** si installano su ogni host elencato; le versioni host non elencate (incl. 0.2.1 stable e la linea 0.2.2) non sono nel dominio dichiarato — al rilascio della versione stable l'enumerazione va estesa e va ripubblicato; non usate `latest` alla cieca su host non dichiarati (`engines` non soddisfatte → disattivazione silenziosa nella preverifica di avvio). Dist-tag storici delle linee precedenti (tutti = 0.6.0, enumerazione a 15 termini fino a 0.2.0-rc.2):
 
 | DSH host | plugin version | install dist-tag |
 |---|---|---|
-| any in the 16-term enum (incl. 0.2.1-rc.1) | **0.7.1** (latest) | `latest` or `dsh-0.2.1-rc.1` |
+| any in the 17-term enum (incl. 0.2.1-rc.1 and rc.2) | **0.7.2** (latest) | `latest` or `dsh-0.2.1-rc.1` / `dsh-0.2.1-rc.2` |
 | 0.2.0-rc.1/rc.2 | 0.6.0 | `dsh-0.2.0` |
 | 0.1.7-rc.1/rc.2 | 0.6.0 | `dsh-0.1.7` |
 | 0.1.5 line | 0.6.0 | `dsh-0.1.5` |
@@ -45,11 +45,11 @@ Senza better-sidebar il plugin resta **completamente inerte**: le due registrazi
 ### Metodo A (consigliato, CLI ufficiale)
 
 ```sh
-# hosts inside the 16-term enum (incl. 0.2.1-rc.1): latest works
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest          # 0.7.1, 16-term full enumeration
+# hosts inside the 17-term enum (incl. 0.2.1-rc.1 and rc.2): latest works
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest          # 0.7.2, 17-term full enumeration
 dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.1-rc.1  # same, explicit line tag
-# alt: local tarball (this line: dsh-canvas-tsx-sidebar-0.7.1.tgz)
-dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.7.1.tgz>
+# alt: local tarball (this line: dsh-canvas-tsx-sidebar-0.7.2.tgz)
+dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.7.2.tgz>
 ```
 ```
 

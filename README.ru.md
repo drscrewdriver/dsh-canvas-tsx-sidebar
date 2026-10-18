@@ -16,14 +16,14 @@
 **Диапазон совместимости**: **полное перечисление единой линией** — `engines.dsh` — точное перечисление из 16 позиций (та же строка в package.json `engines`, peer `@deepseek-ai/dsh-client-locale` и `dsh.plugin.json`; без интервалов, без caret):
 
 ```text
-0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1
+0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2
 ```
 
-**0.7.1 (latest / `dsh-0.2.1-rc.1`) и выше** устанавливается на любой из перечисленных хостов; неперечисленные версии хоста (в т.ч. 0.2.1 stable и линия 0.2.2) вне заявленной области — при выпуске stable-версии перечисление нужно расширить и перевыпустить; не используйте `latest` вслепую на необъявленных хостах (`engines` не удовлетворены → тихая блокировка стартовой проверкой). Исторические dist-tag старых линий (все = 0.6.0, 15 позиций до 0.2.0-rc.2):
+**0.7.2 (latest / `dsh-0.2.1-rc.2`) и выше** устанавливается на любой из перечисленных хостов; неперечисленные версии хоста (в т.ч. 0.2.1 stable и линия 0.2.2) вне заявленной области — при выпуске stable-версии перечисление нужно расширить и перевыпустить; не используйте `latest` вслепую на необъявленных хостах (`engines` не удовлетворены → тихая блокировка стартовой проверкой). Исторические dist-tag старых линий (все = 0.6.0, 15 позиций до 0.2.0-rc.2):
 
 | DSH host | plugin version | install dist-tag |
 |---|---|---|
-| any in the 16-term enum (incl. 0.2.1-rc.1) | **0.7.1** (latest) | `latest` or `dsh-0.2.1-rc.1` |
+| any in the 17-term enum (incl. 0.2.1-rc.1 and rc.2) | **0.7.2** (latest) | `latest` or `dsh-0.2.1-rc.1` / `dsh-0.2.1-rc.2` |
 | 0.2.0-rc.1/rc.2 | 0.6.0 | `dsh-0.2.0` |
 | 0.1.7-rc.1/rc.2 | 0.6.0 | `dsh-0.1.7` |
 | 0.1.5 line | 0.6.0 | `dsh-0.1.5` |
@@ -45,11 +45,11 @@
 ### Способ A (рекомендуется, официальный CLI)
 
 ```sh
-# hosts inside the 16-term enum (incl. 0.2.1-rc.1): latest works
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest          # 0.7.1, 16-term full enumeration
+# hosts inside the 17-term enum (incl. 0.2.1-rc.1 and rc.2): latest works
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest          # 0.7.2, 17-term full enumeration
 dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.1-rc.1  # same, explicit line tag
-# alt: local tarball (this line: dsh-canvas-tsx-sidebar-0.7.1.tgz)
-dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.7.1.tgz>
+# alt: local tarball (this line: dsh-canvas-tsx-sidebar-0.7.2.tgz)
+dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.7.2.tgz>
 ```
 ```
 

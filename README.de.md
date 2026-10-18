@@ -16,14 +16,14 @@ Dieses Repository bringt zudem einen **Skill** mit: `skills/writing-qoder-canvas
 **Kompatibilitätsumfang**: **vollständige Einzelstrang-Enumerierung** — `engines.dsh` ist eine exakte 16-Glieder-Enumerierung (derselbe String in package.json `engines`, Peer `@deepseek-ai/dsh-client-locale` und `dsh.plugin.json`; keine Bereiche, keine Caret):
 
 ```text
-0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1
+0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2
 ```
 
-**0.7.1 (latest / `dsh-0.2.1-rc.1`) und darüber** lässt sich auf jedem der aufgelisteten Hosts installieren; nicht aufgelistete Host-Versionen (inkl. 0.2.1 stabil und Linie 0.2.2) gehören nicht zum erklärten Bereich — bei Stable-Releases muss die Enumerierung erweitert und neu veröffentlicht werden; kein blindes `latest` auf nicht erklärten Hosts (`engines` nicht erfüllt → stillschweigende Deaktivierung durch die Start-Vorprüfung). Historische Dist-Tags der alten Linien (alle = 0.6.0, 15-Glieder-Enumerierung bis 0.2.0-rc.2):
+**0.7.2 (latest / `dsh-0.2.1-rc.2`) und darüber** lässt sich auf jedem der aufgelisteten Hosts installieren; nicht aufgelistete Host-Versionen (inkl. 0.2.1 stabil und Linie 0.2.2) gehören nicht zum erklärten Bereich — bei Stable-Releases muss die Enumerierung erweitert und neu veröffentlicht werden; kein blindes `latest` auf nicht erklärten Hosts (`engines` nicht erfüllt → stillschweigende Deaktivierung durch die Start-Vorprüfung). Historische Dist-Tags der alten Linien (alle = 0.6.0, 15-Glieder-Enumerierung bis 0.2.0-rc.2):
 
 | DSH host | plugin version | install dist-tag |
 |---|---|---|
-| any in the 16-term enum (incl. 0.2.1-rc.1) | **0.7.1** (latest) | `latest` or `dsh-0.2.1-rc.1` |
+| any in the 17-term enum (incl. 0.2.1-rc.1 and rc.2) | **0.7.2** (latest) | `latest` or `dsh-0.2.1-rc.1` / `dsh-0.2.1-rc.2` |
 | 0.2.0-rc.1/rc.2 | 0.6.0 | `dsh-0.2.0` |
 | 0.1.7-rc.1/rc.2 | 0.6.0 | `dsh-0.1.7` |
 | 0.1.5 line | 0.6.0 | `dsh-0.1.5` |
@@ -45,11 +45,11 @@ Ohne better-sidebar bleibt das Plugin **vollständig inert**: Beide Registrierun
 ### Methode A (empfohlen, offizielle CLI)
 
 ```sh
-# hosts inside the 16-term enum (incl. 0.2.1-rc.1): latest works
-dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest          # 0.7.1, 16-term full enumeration
+# hosts inside the 17-term enum (incl. 0.2.1-rc.1 and rc.2): latest works
+dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest          # 0.7.2, 17-term full enumeration
 dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.1-rc.1  # same, explicit line tag
-# alt: local tarball (this line: dsh-canvas-tsx-sidebar-0.7.1.tgz)
-dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.7.1.tgz>
+# alt: local tarball (this line: dsh-canvas-tsx-sidebar-0.7.2.tgz)
+dsh plugin --profile <profile> add <dsh-canvas-tsx-sidebar-0.7.2.tgz>
 ```
 ```
 
