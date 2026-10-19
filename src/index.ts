@@ -10,18 +10,35 @@
  * never runs.
  */
 import type { Context } from '@deepseek-ai/cordis'
-import { registerCanvasGateway } from './gateway.ts'
+import { registerCanvasGateway, type WebServerLike } from './gateway.ts'
 
 /** Profile row identity. */
 export const name = 'dsh-canvas-tsx-sidebar'
 
 /**
  * Node-face apply: mount the gateway when this process serves a web shell.
+ *
+ * `ctx.get('webServer')` returns `undefined` while the provider fiber is not
+ * yet ACTIVE (cordis strict reflect), and mounting directly would then
+ * silently install nothing — so when the immediate lookup misses, the mount
+ * is deferred through `ctx.inject(['webServer'])`, which fires once the
+ * service becomes available. webServer stays an *optional* dependency: on a
+ * pure-agent host the inject callback simply never runs.
  * @param ctx - the node plugin context.
  */
 export function apply(ctx: Context): void {
-  const dispose = registerCanvasGateway(ctx)
-  if (typeof dispose === 'function') {
-    ctx.effect?.(() => dispose, 'dsh-canvas-tsx-sidebar: gateway')
+  const mount = (scope: Context, webServer?: WebServerLike): void => {
+    const dispose = registerCanvasGateway(scope, webServer)
+    if (typeof dispose === 'function') {
+      scope.effect?.(() => dispose, 'dsh-canvas-tsx-sidebar: gateway')
+    }
   }
+  const mounted = ctx.get?.('webServer') as WebServerLike | undefined
+  if (mounted !== undefined) {
+    mount(ctx, mounted)
+    return
+  }
+  ctx.inject(['webServer'], (scope) => {
+    mount(scope as unknown as Context, (scope as unknown as { webServer: WebServerLike }).webServer)
+  })
 }

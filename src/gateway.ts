@@ -97,9 +97,12 @@ async function sessionCwdOf(ctx: Context, payload: Record<string, unknown>): Pro
   if (sessionId === '') throw new GatewayError(400, 'bad-request', 'sessionId is required')
   let headerCwd: string | undefined
   try {
+    // Order matters: an un-injected property read *throws* (it does not yield
+    // undefined), so `??` can never reach the fallback — `ctx.get` (which needs
+    // no inject declaration) must come first. See issue #1.
     const sessions =
-      (ctx as unknown as { sessions?: { get(id: string): { header?: { cwd?: string } } | undefined } }).sessions ??
-      ctx.get?.('sessions' as never)
+      ctx.get?.('sessions' as never) ??
+      (ctx as unknown as { sessions?: { get(id: string): { header?: { cwd?: string } } | undefined } }).sessions
     headerCwd = (sessions as { get(id: string): { header?: { cwd?: string } } | undefined } | undefined)?.get?.(sessionId)?.header?.cwd
   } catch {
     headerCwd = undefined
@@ -151,7 +154,7 @@ const MEDIA_TYPES: Record<string, string> = {
   '.ico': 'image/vnd.microsoft.icon',
 }
 
-interface WebServerLike {
+export interface WebServerLike {
   register(opts: { kind: string; path: string; handler: (req: unknown, res: unknown) => void | Promise<void> }): () => void
 }
 
@@ -159,11 +162,14 @@ interface WebServerLike {
  * Register both routes on the web shell.
  *
  * @param ctx - the node plugin context.
+ * @param resolvedWebServer - a webServer already resolved by the caller (the
+ *   apply-side `ctx.inject(['webServer'])` arm); when omitted it is looked up
+ *   here, which only succeeds if the provider fiber is already ACTIVE.
  * @returns a disposer, or `undefined` when this process serves no web shell
  *   (a pure-agent host) — the caller then installs nothing.
  */
-export function registerCanvasGateway(ctx: Context): (() => void) | undefined {
-  const webServer = ctx.get?.('webServer') as WebServerLike | undefined
+export function registerCanvasGateway(ctx: Context, resolvedWebServer?: WebServerLike): (() => void) | undefined {
+  const webServer = resolvedWebServer ?? (ctx.get?.('webServer') as WebServerLike | undefined)
   if (webServer === undefined || typeof webServer.register !== 'function') return undefined
 
   const apiDispose = webServer.register({
