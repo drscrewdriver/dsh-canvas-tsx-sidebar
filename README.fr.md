@@ -16,7 +16,7 @@ Ce dépôt embarque également un **Skill** : `skills/writing-qoder-canvas/`, qu
 **Périmètre de compatibilité** : **énumération globale à ligne unique** — `engines.dsh` est une énumération exacte à 17 termes (même chaîne dans package.json `engines`, le peer `@deepseek-ai/dsh-client-locale` et `dsh.plugin.json` ; ni plage, ni caret) :
 
 ```text
-0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2
+0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3
 ```
 
 **0.7.2 (latest / `dsh-0.2.1-rc.2`) et supérieur** s'installent sur chaque hôte listé ci-dessus ; les versions d'hôte non listées (dont 0.2.1 stable et la ligne 0.2.2) ne sont pas dans le domaine déclaré — à la sortie d'une version stable, l'énumération doit être étendue et une nouvelle publication est nécessaire ; n'utilisez pas `latest` à l'aveugle sur un hôte non déclaré (les `engines` non satisfaites → désactivation silencieuse par la pré-vérification de démarrage). Tags historiques des anciennes lignes (tous = 0.6.0, énumération à 15 termes jusqu'à 0.2.0-rc.2) :

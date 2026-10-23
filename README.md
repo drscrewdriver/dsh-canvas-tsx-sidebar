@@ -13,17 +13,17 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 
 ![canvas-tsx-sidebar](assets/canvas.png)
 
-**兼容性范围**：**全域单线枚举**—— `engines.dsh` 为 17 项精确枚举串（同串落在 package.json engines / peer dsh-client-locale / dsh.plugin.json 三处，无区间、无 caret）：
+**兼容性范围**：**全域单线枚举**—— `engines.dsh` 为 18 项精确枚举串（同串落在 package.json engines / peer dsh-client-locale / dsh.plugin.json 三处，无区间、无 caret）：
 
 ```text
-0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2
+0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3
 ```
 
 **0.7.2（latest / `dsh-0.2.1-rc.2`）及以上**在上述每个宿主版本可装；未列出的宿主版本（含 0.2.1 稳定版、0.2.2 线）不在声明域——稳定版发布时需另行补枚举并重新发版，不要在未声明宿主上裸用 `latest`（不满足宿主 `engines` 会被启动预检静默禁用）。旧线历史 dist-tag（均 = 0.6.0，15 项枚举止 0.2.0-rc.2）：
 
 | DSH 宿主 | 本插件可用版本 | 安装 dist-tag |
 |---|---|---|
-| 枚举串内任一（含 0.2.1-rc.1/rc.2） | **0.7.2**（latest） | `latest` 或 `dsh-0.2.1-rc.2` |
+| 枚举串内任一（含 0.2.1-rc.1/rc.2/rc.3） | **0.7.2**（latest） | `latest` 或 `dsh-0.2.1-rc.2` |
 | 0.2.0-rc.1/rc.2 | 0.6.0 | `dsh-0.2.0` |
 | 0.1.7-rc.1/rc.2 | 0.6.0 | `dsh-0.1.7` |
 | 0.1.5 线 | 0.6.0 | `dsh-0.1.5` |

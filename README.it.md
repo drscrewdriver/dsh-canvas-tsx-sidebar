@@ -16,7 +16,7 @@ Questo repository include anche uno **Skill**: `skills/writing-qoder-canvas/`, c
 **Perimetro di compatibilità**: **enumerazione globale a un solo filo** — `engines.dsh` è un'enumerazione esatta a 17 termini (la stessa stringa in package.json `engines`, nel peer `@deepseek-ai/dsh-client-locale` e in `dsh.plugin.json`; né intervalli, né caret):
 
 ```text
-0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2
+0.1.0-rc.2 || 0.1.0-rc.3 || 0.1.0-rc.6 || 0.1.0-rc.7 || 0.1.0-rc.8 || 0.1.1-rc.1 || 0.1.1-rc.2 || 0.1.2-rc.1 || 0.1.5-rc.1 || 0.1.5-rc.2 || 0.1.5-rc.3 || 0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2 || 0.2.1-rc.1 || 0.2.1-rc.2 || 0.2.1-rc.3
 ```
 
 **0.7.2 (latest / `dsh-0.2.1-rc.2`) e superiori** si installano su ogni host elencato; le versioni host non elencate (incl. 0.2.1 stable e la linea 0.2.2) non sono nel dominio dichiarato — al rilascio della versione stable l'enumerazione va estesa e va ripubblicato; non usate `latest` alla cieca su host non dichiarati (`engines` non soddisfatte → disattivazione silenziosa nella preverifica di avvio). Dist-tag storici delle linee precedenti (tutti = 0.6.0, enumerazione a 15 termini fino a 0.2.0-rc.2):
