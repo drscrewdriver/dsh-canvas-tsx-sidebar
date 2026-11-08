@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Informe Canvas",
+    "description": "Renderiza un informe .canvas.tsx como página HTML"
+  }
+}

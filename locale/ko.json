@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Canvas 보고서",
+    "description": ".canvas.tsx 보고서를 HTML 페이지로 렌더링"
+  }
+}

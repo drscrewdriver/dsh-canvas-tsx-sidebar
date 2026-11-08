@@ -23,6 +23,7 @@
       "default": "./lib/client.js"
     },
     "./cordis.patch.yml": "./cordis.patch.yml",
+    "./locale/*.json": "./locale/*.json",
     "./package.json": "./package.json"
   },
   "files": [
@@ -32,7 +33,13 @@
     "screenshots.json",
     "cordis.patch.yml",
     "dsh.plugin.json",
-    "README.md"
+    "README.md",
+    "README.de.md",
+    "README.fr.md",
+    "README.it.md",
+    "README.ru.md",
+    "README.es.md",
+    "locale"
   ],
   "dsh": {
     "bundle": {

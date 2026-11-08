@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Canvas 报告",
+    "description": "把 .canvas.tsx 报告渲染成 HTML 页面"
+  }
+}

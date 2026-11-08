@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Rapport Canvas",
+    "description": "Affiche un rapport .canvas.tsx comme page HTML"
+  }
+}
