@@ -23,7 +23,7 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 
 | DSH 宿主 | 本插件可用版本 | 安装 dist-tag |
 |---|---|---|
-| 枚举串内任一（含 0.2.1-rc.1/rc.2/rc.3） | **0.7.2**（latest） | `latest` 或 `dsh-0.2.1-rc.2` |
+| 区间内任一（含 0.2.1-rc.1/rc.2/rc.3） | **0.7.2**（latest） | `latest` 或 `dsh-0.2.1-rc.2` |
 | 0.2.0-rc.1/rc.2 | 0.6.0 | `dsh-0.2.0` |
 | 0.1.7-rc.1/rc.2 | 0.6.0 | `dsh-0.1.7` |
 | 0.1.5 线 | 0.6.0 | `dsh-0.1.5` |
@@ -45,7 +45,7 @@ DSH（DeepSeek Harness）Web 插件 —— **dsh-better-sidebar 消费插件**�
 ### 方式 A（推荐，官方 CLI）
 
 ```sh
-# 枚举串内宿主（含 0.2.1-rc.1/rc.2）直接 latest；或钉本线专用 tag
+# 区间内宿主（含 0.2.1-rc.1/rc.2）直接 latest；或钉本线专用 tag
 dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@latest        # 0.7.2，20 项全域枚举
 dsh plugin --profile <profile> add dsh-canvas-tsx-sidebar@dsh-0.2.1-rc.1 # 同上，显式钉线
 # 备选：本地 tarball（本线为 dsh-canvas-tsx-sidebar-0.7.2.tgz）
