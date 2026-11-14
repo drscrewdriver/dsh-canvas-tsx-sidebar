@@ -16,7 +16,7 @@ Dieses Repository bringt zudem einen **Skill** mit: `skills/writing-qoder-canvas
 **Kompatibilitätsumfang**: **Einzelstrang-Bereich** — `engines.dsh` ist ein Bereich (derselbe String in package.json `engines`, Peer `@deepseek-ai/dsh-client-locale` und `dsh.plugin.json`; kein Caret):
 
 ```text
->=0.1.1-rc.2 <0.3.0
+>=0.1.0-rc.2 <0.3.0-0
 ```
 
 **0.7.2 (latest / `dsh-0.2.1-rc.2`) und darüber** lässt sich auf jedem der aufgelisteten Hosts installieren; nicht aufgelistete Host-Versionen (inkl. 0.2.1 stabil und Linie 0.2.2) gehören nicht zum erklärten Bereich — bei Stable-Releases muss die Enumerierung erweitert und neu veröffentlicht werden; kein blindes `latest` auf nicht erklärten Hosts (`engines` nicht erfüllt → stillschweigende Deaktivierung durch die Start-Vorprüfung). Historische Dist-Tags der alten Linien (alle = 0.6.0, 15-Glieder-Enumerierung bis 0.2.0-rc.2):
