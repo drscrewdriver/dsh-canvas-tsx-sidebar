@@ -35,6 +35,7 @@ import { CanvasDocument } from './canvas/render'
 import { ensureCanvasStyles } from './canvas/stylesheet'
 import { baseName, isInsideWorkspace, isRemoteUrl, resolveMediaRef } from './canvas/paths'
 import { fsReadText, isOutsideWorkspace, isUnavailable, mediaUrl, SidebarApiError } from './canvas/sidebar-api'
+import { mountStarRow } from './star-row-copy'
 import type { Scope } from './canvas/sidebar-api'
 import type { ExtractResult } from './canvas/ir'
 
@@ -381,6 +382,8 @@ export function CanvasReportTab(props: CanvasReportTabProps): ReactNode {
     { style: ROOT_STYLE, 'data-dsh-canvas-tsx': 'root' },
     bar,
     createElement('div', { style: SCROLL_STYLE }, body),
+    // star 快车道行（单源 _tools/star-row，改副本无效）：纯 DOM 挂载，整行即链接
+    createElement('span', { ref: (n: HTMLElement | null) => { if (n && !n.firstChild) n.appendChild(mountStarRow()) } }),
   )
 }
 
