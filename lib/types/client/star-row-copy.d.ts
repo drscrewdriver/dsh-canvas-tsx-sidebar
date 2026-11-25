@@ -1,6 +1,9 @@
 /**
  * star-row 真源（面板 star 快车道行，v1）——纯 DOM 实现，零依赖。
  *
+ * 副本约束：生成文件名 star-row-copy.ts，头部须保留 /** 块注释，单行 ≤140
+ * 字宽（sidebar-fold 仓 lint 门禁：max-line + file-header）。
+ *
  * 契约（对齐 panel-star-row spec）：
  *  - 渲染一行 <a>：GitHub 单色 SVG + `owner/name`；variant A 追加一句工程话术；
  *  - 整行即链接（A/L 档），新标签页打开；不做弹窗、不做按钮交互；
