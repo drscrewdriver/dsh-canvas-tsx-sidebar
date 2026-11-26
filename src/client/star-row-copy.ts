@@ -65,9 +65,9 @@ function pickLang(): { ask: string } {
   const tag = (typeof document !== "undefined" && document.documentElement.lang) || "";
   const low = tag.toLowerCase();
   for (const cand of STAR_LANGS) {
-    if (low.startsWith(cand)) return STAR_COPY[cand];
+    if (low.startsWith(cand)) return STAR_COPY[cand]!;
   }
-  return STAR_COPY.en;
+  return STAR_COPY.en!;
 }
 
 /** 在目标文档上建出快车道行（一次性注入样式）。纯 DOM，React 仓经 ref 回调挂载。 */
@@ -79,7 +79,8 @@ export function mountStarRow(doc?: Document): HTMLElement {
     tag.textContent = STYLE_CSS;
     d.head.appendChild(tag);
   }
-  const repo = (REPO_URL.match(/github\.com\/([^/]+\/[^/#?]+)/) ?? [, "drscrewdriver"])[1];
+  const match = REPO_URL.match(/github\.com\/([^/]+\/[^/#?]+)/);
+  const repo = match ? match[1]! : "drscrewdriver";
   const a = d.createElement("a");
   a.className = "dsh-star-row";
   a.href = REPO_URL;
